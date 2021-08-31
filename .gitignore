@@ -1,3 +1,16 @@
+# Folder with restricted data
+IBF_typhoon_model/data/restricted_data/
+
+# All GPM folders: rainfall data that is too large to upload
+GPM*/
+
+# IBTracks file that is too large
+IBF_typhoon_model/data/gis_data/typhoon_tracks/IBTrACS.WP.list.v04r00.lines.dbf
+IBF_typhoon_model/data/gis_data/typhoon_tracks/IBTrACS.WP.list.v04r00.lines.prj
+IBF_typhoon_model/data/gis_data/typhoon_tracks/IBTrACS.WP.list.v04r00.lines.shp
+IBF_typhoon_model/data/gis_data/typhoon_tracks/IBTrACS.WP.list.v04r00.lines.shx
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
