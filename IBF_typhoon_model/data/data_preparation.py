@@ -18,7 +18,6 @@ cdir = os.getcwd()
 Loading the data
 """
 #%% Rice losses sheet: loaded per region
-cdir = os.getcwd()
 file_name = "IBF_typhoon_model\\data\\rice_data\\rice_losses\\rice_losses_combined.xlsx"
 path = os.path.join(cdir, file_name)
 regions = [
@@ -92,7 +91,7 @@ def setting_nan(x):
     if (
         pd.isnull(totally_damaged)
         & pd.isnull(partially_damaged)
-        & pd.isnull(area_affected)
+        # & pd.isnull(area_affected)
     ):
         area_affected = np.nan
 
@@ -342,11 +341,16 @@ Add Rainfall Data
 df_total["rainfall_sum"] = ""
 df_total["rainfall_max"] = ""
 
+# C:\Users\Marieke\GitHub\Typhoon_IBF_Rice_Damage_Model\IBF_typhoon_model\data\rainfall_data\output_data\danas2019\danas2019_matrix.csv
+
 for typhoon in typhoons:
 
     # Path to the rainfall excel sheet per typhoon
     rain_path = os.path.join(
-        cdir, "data\\Rainfall\\output_data", typhoon, typhoon + "_matrix.csv"
+        cdir,
+        "IBF_typhoon_model\\data\\rainfall_data\\output_data",
+        typhoon,
+        typhoon + "_matrix.csv",
     )
     df_temp = pd.read_csv(rain_path)
 
@@ -393,6 +397,8 @@ df_total = pd.merge(
 
 
 # %% Save to excel file
-df_total.to_excel("data\\combined_input_data\\input_data.xlsx", index=False)
+df_total.to_excel(
+    "IBF_typhoon_model\\data\\combined_input_data\\input_data.xlsx", index=False
+)
 
 #%%
