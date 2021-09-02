@@ -52,25 +52,14 @@ os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
 cdir = os.getcwd()
 
 #%% Input data
-name = "IBF_typhoon_model\\data\\combined_input_data\\input_data.xlsx"
+name = "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data.xlsx"
 path = os.path.join(cdir, name)
 df = pd.read_excel(path, engine="openpyxl")
 
 #%% Typhoon overview
-file_name = "IBF_typhoon_model\\data\\data_overview.xlsx"
+file_name = "IBF_typhoon_model\\data\\restricted_data\\data_overview.xlsx"
 path = os.path.join(cdir, file_name)
 df_typh_overview = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
-
-
-""""
-Selecting the data to be used
-# TODO zeros still have to be added
-# TODO wind datasheet not correct yet
-"""
-#%% Only observations within 500km of the typhoon track
-df = df[df["dis_track_min"] <= 500]
-df = df.dropna()
-df = df.reset_index(drop=True)
 
 #%% Selecting the features to be used
 features = [
@@ -91,30 +80,52 @@ features = [
     "rainfall_sum",
     "rainfall_max",
     "dis_track_min",
-    "vmax_gust",
+    "vmax_sust",
 ]
 
 
 """
 Full model for feature selection
 """
+# region
+
 #%% Setting input varialbes
-threshold = 0.3
+
+
+#%%
+classes = {"0": [0, 0.3], "1": [0.3, 0.8], "2": [0.8, 1.1]}
 cv_splits = 5
-GS_score = "f1"
+GS_score = "f1_macro"
 class_weight = "balanced"
-n_features_to_select = 1
+GS_randomized = True
+GS_n_iter = 10
+min_features_to_select = 15
+
 n_estimators_space = [20]
 max_depth_space = [None]
 min_samples_split_space = [2]
 min_samples_leaf_space = [1]
 
-
 #%% Obtaining the features to be used using Recursive Feature Elimination
 # With Cross Validation to select number of features
 random.seed(1)
 
-df["class_value"] = [1 if df["perc_loss"][i] > threshold else 0 for i in range(len(df))]
+
+def determine_class(x):
+
+    for key, value in classes.items():
+
+        if value[0] <= x < value[1]:
+
+            class_value = key
+            break
+
+    return class_value
+
+
+df["class_value"] = df["perc_loss"].apply(determine_class)
+
+
 X = df[features]
 y = df["class_value"]
 
@@ -125,19 +136,35 @@ param_grid = {
     "estimator__min_samples_leaf": min_samples_leaf_space,
 }
 
-rf = RandomForestClassifier(class_weight=class_weight)
-selector = RFECV(rf, step=1, cv=4, verbose=10)
-cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
+cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True, random_state=42)
 
-clf = GridSearchCV(
-    selector,
-    param_grid=param_grid,
-    scoring=GS_score,
-    cv=cv_folds,
-    refit=True,
-    return_train_score=True,
-    verbose=10,
+rf = RandomForestClassifier(class_weight=class_weight)
+
+selector = RFECV(
+    rf, step=1, cv=4, verbose=10, min_features_to_select=min_features_to_select
 )
+
+if GS_randomized == True:
+    clf = RandomizedSearchCV(
+        selector,
+        param_distributions=param_grid,
+        scoring=GS_score,
+        cv=cv_folds,
+        verbose=10,
+        return_train_score=True,
+        refit=True,
+        n_iter=GS_n_iter,
+    )
+else:
+    clf = GridSearchCV(
+        selector,
+        param_grid=param_grid,
+        scoring=GS_score,
+        cv=cv_folds,
+        verbose=10,
+        return_train_score=True,
+        refit=True,
+    )
 
 clf.fit(X, y)
 clf.best_estimator_.estimator_
@@ -147,6 +174,8 @@ clf.best_estimator_.ranking_
 selected = list(clf.best_estimator_.support_)
 selected_features = [x for x, y in zip(features, selected) if y == True]
 print(selected_features)
+
+# endregion
 
 
 """
@@ -170,11 +199,11 @@ for year in years:
     df_test_list.append(df[df["year"] == year])
 
 #%% Setting the variables used in the model
-threshold = 0.3
+classes = {"0": [0, 0.3], "1": [0.3, 0.8], "2": [0.8, 1.1]}
 cv_splits = 5
 GS_randomized = False
 GS_n_iter = 10
-GS_score = "f1"
+GS_score = "f1_macro"
 stratK = True
 class_weight = "balanced"  # None
 n_estimators_space = [60]
@@ -183,7 +212,7 @@ min_samples_split_space = [2]
 min_samples_leaf_space = [1, 3]
 
 # Adding class value to df
-df["class_value"] = [1 if df["perc_loss"][i] > threshold else 0 for i in range(len(df))]
+df["class_value"] = df["perc_loss"].apply(determine_class)
 
 #%% Starting the pipeline
 random.seed(1)
@@ -253,8 +282,8 @@ for year in years:
     y_pred_test = rf_fitted.predict(x_test)
     y_pred_train = rf_fitted.predict(x_train)
 
-    train_score_f1 = f1_score(y_train, y_pred_train)
-    test_score_f1 = f1_score(y_test, y_pred_test)
+    train_score_f1 = f1_score(y_train, y_pred_train, average="macro")
+    test_score_f1 = f1_score(y_test, y_pred_test, average="macro")
 
     train_score.append(train_score_f1)
     test_score.append(test_score_f1)
@@ -268,3 +297,5 @@ for year in years:
     print(f"Train score: {train_score_f1}")
     print(f"Test score: {test_score_f1}")
 
+
+# %%

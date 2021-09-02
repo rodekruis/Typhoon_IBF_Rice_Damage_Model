@@ -1,20 +1,47 @@
-#%% Import packages
+"""
+Loading in the libraries
+"""
+#%% General Libraries
 import numpy as np
-import random
-from imblearn.over_sampling import SMOTE
-from imblearn.pipeline import Pipeline
-from sklearn.model_selection import StratifiedKFold, GridSearchCV
-from sklearn.metrics import f1_score
-from xgboost import XGBClassifier
-import os
-from sklearn.feature_selection import RFECV
+from numpy.lib.function_base import average
 import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import (
+    recall_score,
+    f1_score,
+    precision_score,
+    confusion_matrix,
+    make_scorer,
+)
 from sklearn.model_selection import (
     GridSearchCV,
     RandomizedSearchCV,
     StratifiedKFold,
     KFold,
 )
+from sklearn.feature_selection import SelectKBest, SequentialFeatureSelector
+from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline
+import importlib
+import os
+from sklearn.feature_selection import (
+    SelectKBest,
+    RFE,
+    mutual_info_regression,
+    f_regression,
+    mutual_info_classif,
+)
+import eli5
+from eli5.sklearn import PermutationImportance
+from sklearn.inspection import permutation_importance
+import xgboost as xgb
+import random
+import pickle
+import openpyxl
+from sklearn.feature_selection import SequentialFeatureSelector
+from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFECV
 
 
 """
@@ -25,25 +52,14 @@ os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
 cdir = os.getcwd()
 
 #%% Input data
-name = "IBF_typhoon_model\\data\\combined_input_data\\input_data.xlsx"
+name = "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data.xlsx"
 path = os.path.join(cdir, name)
 df = pd.read_excel(path, engine="openpyxl")
 
 #%% Typhoon overview
-file_name = "IBF_typhoon_model\\data\\data_overview.xlsx"
+file_name = "IBF_typhoon_model\\data\\restricted_data\\data_overview.xlsx"
 path = os.path.join(cdir, file_name)
 df_typh_overview = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
-
-
-""""
-Selecting the data to be used
-# TODO zeros still have to be added
-# TODO wind datasheet not correct yet
-"""
-#%% Only observations within 500km of the typhoon track
-df = df[df["dis_track_min"] <= 500]
-df = df.dropna()
-df = df.reset_index(drop=True)
 
 #%% Selecting the features to be used
 features = [
@@ -64,79 +80,72 @@ features = [
     "rainfall_sum",
     "rainfall_max",
     "dis_track_min",
-    "vmax_gust",
+    "vmax_sust",
 ]
 
 
 """
 Full model for feature selection
 """
-#%% Defining the f1 function for eval_metric
-def f1_eval(y_pred, dtrain):
-    y_true = dtrain.get_label()
-    err = 1 - f1_score(y_true, np.round(y_pred))
-    return "f1_err", err
+# region
 
-
-#%% Setting input variables
+#%% Setting input varialbes
 threshold = 0.3
 cv_splits = 5
 GS_score = "f1"
 class_weight = "balanced"
+GS_randomized = True
+GS_n_iter = 10
+min_features_to_select = 15
 
-objective = "binary:hinge"  # to output 0 or 1 instead of probability
-eval_metric = f1_eval
-
-min_features_to_select = 10
-
-learning_rate_space = [0.1]
-gamma_space = [0.1]
-max_depth_space = [6]
-reg_lambda_space = [1]
-n_estimators_space = [100]
-colsample_bytree_space = [0.7]
+n_estimators_space = [20]
+max_depth_space = [None]
+min_samples_split_space = [2]
+min_samples_leaf_space = [1]
 
 #%% Obtaining the features to be used using Recursive Feature Elimination
 # With Cross Validation to select number of features
 random.seed(1)
 
-cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True, random_state=42)
-
 df["class_value"] = [1 if df["perc_loss"][i] > threshold else 0 for i in range(len(df))]
 X = df[features]
 y = df["class_value"]
 
-weight_scale = sum(y == 0) / sum(y == 1)  # negative instances / positive instances
-
 param_grid = {
-    "estimator__learning_rate": learning_rate_space,
-    "estimator__gamma": gamma_space,
-    "estimator__max_depth": max_depth_space,
-    "estimator__reg_lambda": reg_lambda_space,
     "estimator__n_estimators": n_estimators_space,
-    "estimator__colsample_bytree": colsample_bytree_space,
-    "estimator__scale_pos_weight": [weight_scale],
-    "estimator__eval_metric": [f1_eval],
+    "estimator__max_depth": max_depth_space,
+    "estimator__min_samples_split": min_samples_split_space,
+    "estimator__min_samples_leaf": min_samples_leaf_space,
 }
 
-xgb = XGBClassifier(use_label_encoder=False, objective=objective, n_jobs=0)
-
+cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True, random_state=42)
+rf = RandomForestClassifier(class_weight=class_weight)
 selector = RFECV(
-    xgb, step=1, cv=4, verbose=10, min_features_to_select=min_features_to_select
-)
-cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
-
-clf = GridSearchCV(
-    selector,
-    param_grid=param_grid,
-    scoring=GS_score,
-    cv=cv_folds,
-    refit=True,
-    return_train_score=True,
-    verbose=10,
+    rf, step=1, cv=4, verbose=10, min_features_to_select=min_features_to_select
 )
 
-# clf.fit(X, y, selector__xgb__eval_metric=f1_eval)
+if GS_randomized == True:
+    clf = RandomizedSearchCV(
+        selector,
+        param_distributions=param_grid,
+        scoring=GS_score,
+        cv=cv_folds,
+        verbose=10,
+        return_train_score=True,
+        refit=True,
+        n_iter=GS_n_iter,
+    )
+else:
+    clf = GridSearchCV(
+        selector,
+        param_grid=param_grid,
+        scoring=GS_score,
+        cv=cv_folds,
+        verbose=10,
+        return_train_score=True,
+        refit=True,
+    )
+
 clf.fit(X, y)
 clf.best_estimator_.estimator_
 clf.best_estimator_.grid_scores_
@@ -146,10 +155,13 @@ selected = list(clf.best_estimator_.support_)
 selected_features = [x for x, y in zip(features, selected) if y == True]
 print(selected_features)
 
+# endregion
+
 
 """
 Training with CV to obtain performance estimate
 """
+
 #%% Defining the train and test sets
 # Create id and year dictionary
 id_year_dict = dict(zip(df_typh_overview["storm_id"], df_typh_overview["year"]))
@@ -166,24 +178,18 @@ for year in years:
     df_train_list.append(df[df["year"] != year])
     df_test_list.append(df[df["year"] == year])
 
-#%% Setting variables used in the model
+#%% Setting the variables used in the model
 threshold = 0.3
 cv_splits = 5
-GS_score = "f1"
-stratK = True
 GS_randomized = False
 GS_n_iter = 10
-
-objective = "binary:hinge"  # to output 0 or 1 instead of probability
-eval_metric = f1_eval
-min_features_to_select = 10
-
-learning_rate_space = [0.1]
-gamma_space = [0.1]
-max_depth_space = [6]
-reg_lambda_space = [1]
-n_estimators_space = [100]
-colsample_bytree_space = [0.7]
+GS_score = "f1"
+stratK = True
+class_weight = "balanced"  # None
+n_estimators_space = [60]
+max_depth_space = [None]
+min_samples_split_space = [2]
+min_samples_leaf_space = [1, 3]
 
 # Adding class value to df
 df["class_value"] = [1 if df["perc_loss"][i] > threshold else 0 for i in range(len(df))]
@@ -214,21 +220,15 @@ for year in years:
     else:
         cv_folds = KFold(n_splits=cv_splits, shuffle=True)
 
-    steps = [
-        ("xgb", XGBClassifier(use_label_encoder=False, objective=objective, n_jobs=0))
-    ]
+    steps = [("rf", RandomForestClassifier(class_weight=class_weight))]
     pipe = Pipeline(steps, verbose=0)
 
     search_space = [
         {
-            "xgb__learning_rate": learning_rate_space,
-            "xgb__gamma": gamma_space,
-            "xgb__max_depth": max_depth_space,
-            "xgb__reg_lambda": reg_lambda_space,
-            "xgb__n_estimators": n_estimators_space,
-            "xgb__colsample_bytree": colsample_bytree_space,
-            "xgb__scale_pos_weight": [weight_scale],
-            "xgb__eval_metric": [f1_eval],
+            "rf__n_estimators": n_estimators_space,
+            "rf__max_depth": max_depth_space,
+            "rf__min_samples_split": min_samples_split_space,
+            "rf__min_samples_leaf": min_samples_leaf_space,
         }
     ]
 
@@ -256,11 +256,11 @@ for year in years:
         )
 
     # Fitting the model on the full dataset
-    xgb_fitted = mod.fit(x_train, y_train)
-    results = xgb_fitted.cv_results_
+    rf_fitted = mod.fit(x_train, y_train)
+    results = rf_fitted.cv_results_
 
-    y_pred_test = xgb_fitted.predict(x_test)
-    y_pred_train = xgb_fitted.predict(x_train)
+    y_pred_test = rf_fitted.predict(x_test)
+    y_pred_train = rf_fitted.predict(x_train)
 
     train_score_f1 = f1_score(y_train, y_pred_train)
     test_score_f1 = f1_score(y_test, y_pred_test)
@@ -276,5 +276,6 @@ for year in years:
 
     print(f"Train score: {train_score_f1}")
     print(f"Test score: {test_score_f1}")
+
 
 # %%
