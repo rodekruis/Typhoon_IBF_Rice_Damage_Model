@@ -1,4 +1,4 @@
-#%% Loading libraries
+# %% Loading libraries
 import pandas as pd
 import numpy as np
 import random
@@ -17,7 +17,7 @@ cdir = os.getcwd()
 """
 Loading the data
 """
-#%% Rice losses sheet: loaded per region
+# %% Rice losses sheet: loaded per region
 file_name = "IBF_typhoon_model\\data\\rice_data\\rice_losses\\rice_losses_combined.xlsx"
 path = os.path.join(cdir, file_name)
 regions = [
@@ -47,37 +47,37 @@ for region in regions:
 # Example df
 print(df_damages["region_car"].head())
 
-#%% Rice area planted sheet
+# %% Rice area planted sheet
 file_name = "IBF_typhoon_model\\data\\rice_data\\rice_area\\rice_area_planted.xlsx"
 path = os.path.join(cdir, file_name)
 rice_area_planted = pd.read_excel(path, engine="openpyxl")
 
-#%% Data overview sheet
+# %% Data overview sheet
 file_name = "IBF_typhoon_model\\data\\data_overview.xlsx"
 path = os.path.join(cdir, file_name)
 typh_overview = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
 
-#%% Geographical Features
+# %% Geographical Features
 file_name = "IBF_typhoon_model\\data\\data_collection.xlsx"
 path = os.path.join(cdir, file_name)
 mun_geo_data = pd.read_excel(
     path, sheet_name="municipality_geo_data", engine="openpyxl"
 )
 
-#%% Geographical overview
+# %% Geographical overview
 file_name = "IBF_typhoon_model\\data\\data_collection.xlsx"
 path = os.path.join(cdir, file_name)
 mun_overview = pd.read_excel(path, sheet_name="admin_boundaries", engine="openpyxl")
 
-#%% Wind data
-file_name = "IBF_typhoon_model\\data\\wind_data\\output\\historical_typhoons_wind.csv"
-path = os.path.join(cdir, file_name)
-wind_data = pd.read_csv(path)
+# %% Wind data
+# file_name = "IBF_typhoon_model\\data\\wind_data\\output\\historical_typhoons_wind.csv"
+# path = os.path.join(cdir, file_name)
+# wind_data = pd.read_csv(path)
 
 """
 Process the loss data
 """
-#%% Setting the zero and NaN values
+# %% Setting the zero and NaN values
 # For the regions with totally and partially collected
 # --> area afected is missing when both are missing
 # TODO do this formatting in the excel sheet and remove it from script, for consistent formatting
@@ -116,7 +116,7 @@ for region in regions_nan:
             setting_nan, axis="columns"
         )
 
-#%% Remove all the rows where the municpality is NaN
+# %% Remove all the rows where the municpality is NaN
 for region in regions:
 
     df_damages[region] = df_damages[region][
@@ -127,7 +127,7 @@ for region in regions:
 """
 Create dataframe in input format: with loss added
 """
-#%% Create dataframe with municipalities, typhoons and damages
+# %% Create dataframe with municipalities, typhoons and damages
 # For each region: takes all the municipalities which occur in the excel sheet
 # and combines it with every typhoon that occurs in the excel sheet
 # TODO still need to apply rule on which observations are included in the data set
@@ -172,18 +172,18 @@ for region in regions:
 # Dataframe still contains '-'
 df_total["area_affected"] = df_total["area_affected"].replace("-", np.nan)
 
-#%% Add SID
+# %% Add SID
 sid_dict = dict(zip(typh_overview["name_year"], typh_overview["storm_id"]))
 df_total["storm_id"] = df_total["typhoon"].map(sid_dict)
 
-#%% Obtain info
+# %% Obtain info
 municipalities = df_total["mun_code"].unique()
 typhoons = df_total["typhoon"].unique()
 
 """
 Add Standing rice area
 """
-#%% Process area planted into standing area
+# %% Process area planted into standing area
 planting_dates = rice_area_planted.columns
 planting_dates = planting_dates[planting_dates != "ADM3_PCODE"]
 
@@ -263,7 +263,7 @@ df_total["rice_area"] = df_total["rice_area"] * 0.04
 """
 Add percentage loss
 """
-#%% Use area affected and the standing rice area to obtain the percentage affected
+# %% Use area affected and the standing rice area to obtain the percentage affected
 
 
 def division(x, y):
@@ -290,7 +290,7 @@ print(
 """
 Add geographic data
 """
-#%% List of geographical variables to add
+# %% List of geographical variables to add
 # Same variables as in housing model
 # coast - perimeter ratio has been added
 df_total["mean_slope"] = ""
@@ -337,11 +337,10 @@ df_total["coast_peri_ratio"] = df_total["coast_length"] / df_total["perimeter"]
 Add Rainfall Data
 """
 
-#%% Loop through the rainfall folders to obtain sheets
+# %% Loop through the rainfall folders to obtain sheets
 df_total["rainfall_sum"] = ""
 df_total["rainfall_max"] = ""
 
-# C:\Users\Marieke\GitHub\Typhoon_IBF_Rice_Damage_Model\IBF_typhoon_model\data\rainfall_data\output_data\danas2019\danas2019_matrix.csv
 
 for typhoon in typhoons:
 
@@ -373,27 +372,39 @@ for typhoon in typhoons:
 Add Windspeed and Track Distance Data
 """
 
-#%% Merging the dataframes
+# %% Merging the dataframes
 
-df_total = pd.merge(
-    df_total,
-    wind_data[
-        [
-            "adm3_pcode",
-            "storm_id",
-            "v_max",
-            "dis_track_min",
-            "vmax_gust",
-            "vmax_gust_mph",
-            "vmax_sust",
-            "vmax_sust_mph",
-        ]
-    ],
-    left_on=["mun_code", "storm_id"],
-    right_on=["adm3_pcode", "storm_id"],
-    how="left",
-    validate="one_to_one",
-)
+for typhoon in typhoons:
+
+    # Path to the wind data excel sheet
+    wind_path = os.path.join(
+        cdir,
+        "IBF_typhoon_model\\data\\wind_data\\outputtt",
+        typhoon,
+        "_windgrid_output.csv",
+    )
+
+    df_wind_temp = pd.read_csv(wind_path)
+
+    df_total = pd.merge(
+        df_total,
+        df_wind_temp[
+            [
+                "adm3_pcode",
+                "storm_id",
+                "v_max",
+                "dis_track_min",
+                "vmax_gust",
+                "vmax_gust_mph",
+                "vmax_sust",
+                "vmax_sust_mph",
+            ]
+        ],
+        left_on=["mun_code", "storm_id"],
+        right_on=["adm3_pcode", "storm_id"],
+        how="left",
+        validate="one_to_one",
+    )
 
 
 # %% Save to excel file
@@ -401,4 +412,4 @@ df_total.to_excel(
     "IBF_typhoon_model\\data\\combined_input_data\\input_data.xlsx", index=False
 )
 
-#%%
+# %%
