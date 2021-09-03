@@ -1,6 +1,9 @@
 # Folder with restricted data
 IBF_typhoon_model/data/restricted_data/
 
+# Scripts for own use only
+IBF_typhoon_model/test.py
+
 # All GPM folders: rainfall data that is too large to upload
 GPM*/
 

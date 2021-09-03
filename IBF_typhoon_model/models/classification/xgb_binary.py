@@ -16,143 +16,82 @@ from sklearn.model_selection import (
     KFold,
 )
 
-"""
-Loading in the data
-"""
-#%% Setting path to the initial folder
-os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
-cdir = os.getcwd()
 
-#%% Input data
-name = "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data.xlsx"
-path = os.path.join(cdir, name)
-df = pd.read_excel(path, engine="openpyxl")
-
-#%% Typhoon overview
-file_name = "IBF_typhoon_model\\data\\restricted_data\\data_overview.xlsx"
-path = os.path.join(cdir, file_name)
-df_typh_overview = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
-
-#%% Selecting the features to be used
-features = [
-    "rice_area",
-    "mean_slope",
-    "mean_elevation_m",
-    "ruggedness_stdev",
-    "mean_ruggedness",
-    "slope_stdev",
-    "area_km2",
-    "poverty_perc",
-    "with_coast",
-    "coast_length",
-    "perimeter",
-    "glat",
-    "glon",
-    "coast_peri_ratio",
-    "rainfall_sum",
-    "rainfall_max",
-    "dis_track_min",
-    "vmax_sust",
-]
-
-
-"""
-Full model for feature selection
-"""
-# region
-
-#%% Defining the f1 function for eval_metric
 def f1_eval(y_pred, dtrain):
     y_true = dtrain.get_label()
     err = 1 - f1_score(y_true, np.round(y_pred))
     return "f1_err", err
 
 
-#%% Setting input variables
-threshold = 0.3
-cv_splits = 5
-GS_score = "f1"
-class_weight = "balanced"
-GS_randomized = True
-GS_n_iter = 10
-min_features_to_select = 15
+# #%% Setting input variables
+# threshold = 0.3
+# cv_splits = 5
+# GS_score = "f1"
+# class_weight = "balanced"
+# GS_randomized = True
+# GS_n_iter = 10
+# min_features_to_select = 15
 
-objective = "binary:hinge"  # to output 0 or 1 instead of probability
-eval_metric = f1_eval
+# objective = "binary:hinge"  # to output 0 or 1 instead of probability
+# eval_metric = f1_eval
 
-learning_rate_space = [0.1, 0.5, 1]
-gamma_space = [0.1, 0.5, 2]
-max_depth_space = [6, 8]
-reg_lambda_space = [0.001, 0.01, 0.1, 1]
-n_estimators_space = [100, 200]
-colsample_bytree_space = [0.5, 0.7, 1]
+
 
 #%% Obtaining the features to be used using Recursive Feature Elimination
 # With Cross Validation to select number of features
 random.seed(1)
 
-df["class_value"] = [1 if df["perc_loss"][i] > threshold else 0 for i in range(len(df))]
-X = df[features]
-y = df["class_value"]
 
-weight_scale = sum(y == 0) / sum(y == 1)  # negative instances / positive instances
 
-param_grid = {
-    "estimator__learning_rate": learning_rate_space,
-    "estimator__gamma": gamma_space,
-    "estimator__max_depth": max_depth_space,
-    "estimator__reg_lambda": reg_lambda_space,
-    "estimator__n_estimators": n_estimators_space,
-    "estimator__colsample_bytree": colsample_bytree_space,
-}
+def xgb_binary_features(
+    X, y, features, search_space, objective, cv_splits, min_features_to_select, GS_score, GS_n_iter
+):
 
-cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True, random_state=42)
+    cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
 
-xgb = XGBClassifier(
-    use_label_encoder=False,
-    objective=objective,
-    n_jobs=0,
-    # scale_pos_weight=weight_scale,
-)
-
-selector = RFECV(
-    xgb, step=1, cv=4, verbose=10, min_features_to_select=min_features_to_select
-)
-cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
-
-if GS_randomized == True:
-    clf = RandomizedSearchCV(
-        selector,
-        param_distributions=param_grid,
-        scoring=GS_score,
-        cv=cv_folds,
-        verbose=10,
-        return_train_score=True,
-        refit=True,
-        n_iter=GS_n_iter,
-    )
-else:
-    clf = GridSearchCV(
-        selector,
-        param_grid=param_grid,
-        scoring=GS_score,
-        cv=cv_folds,
-        verbose=10,
-        return_train_score=True,
-        refit=True,
+    xgb = XGBClassifier(
+        use_label_encoder=False,
+        objective=objective,
+        n_jobs=0,
     )
 
-clf.fit(X, y)
-clf.best_estimator_.estimator_
+    selector = RFECV(
+        xgb, step=1, cv=4, verbose=10, min_features_to_select=min_features_to_select
+    )
 
-clf.best_estimator_.grid_scores_
-clf.best_estimator_.ranking_
+    cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
 
-selected = list(clf.best_estimator_.support_)
-selected_features = [x for x, y in zip(features, selected) if y == True]
-print(selected_features)
+    if GS_randomized == True:
+        clf = RandomizedSearchCV(
+            selector,
+            param_distributions=search_space,
+            scoring=GS_score,
+            cv=cv_folds,
+            verbose=10,
+            return_train_score=True,
+            refit=True,
+            n_iter=GS_n_iter,
+        )
+    else:
+        clf = GridSearchCV(
+            selector,
+            param_grid=search_space,
+            scoring=GS_score,
+            cv=cv_folds,
+            verbose=10,
+            return_train_score=True,
+            refit=True,
+        )
 
-# endregion
+    clf.fit(X, y)
+    selected = list(clf.best_estimator_.support_)
+    selected_features = [x for x, y in zip(features, selected) if y == True]
+    print(selected_features)
+
+    return selected_features
+
+
+
 
 
 """
