@@ -1,7 +1,3 @@
-"""
-Loading in the libraries
-"""
-#%% General Libraries
 import numpy as np
 from numpy.lib.function_base import average
 import pandas as pd
@@ -114,7 +110,7 @@ def rf_binary_performance(
 
     for i in range(len(df_train_list)):
 
-        print(f"Running for {i} out of a total of {len(df_train_list)}")
+        print(f"Running for {i+1} out of a total of {len(df_train_list)}")
 
         train = df_train_list[i]
         test = df_test_list[i]
@@ -123,7 +119,7 @@ def rf_binary_performance(
         y_train = train["class_value_binary"]
 
         x_test = test[features]
-        y_test = test["class_value"]
+        y_test = test["class_value_binary"]
 
         # Stratified or non-stratified CV
         if stratK == True:
@@ -141,7 +137,7 @@ def rf_binary_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=10,
+                verbose=0,
                 return_train_score=True,
                 refit=True,
                 n_iter=GS_n_iter,
@@ -152,7 +148,7 @@ def rf_binary_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=10,
+                verbose=0,
                 return_train_score=True,
                 refit=True,
             )
@@ -181,5 +177,3 @@ def rf_binary_performance(
 
     return df_predicted
 
-
-# %%
