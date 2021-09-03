@@ -114,9 +114,9 @@ for typhoon_name in typhoon_events:
     # cent.set_raster_from_pnt_bounds((minx,miny,maxx,maxy), res=0.05)
     cent.set_raster_from_pnt_bounds((minx, miny, maxx, maxy), res=0.05)
     cent.check()
-    cent.plot()
-    plt.show()
-    plt.close()
+    # cent.plot()
+    # plt.show()
+    # plt.close()
 
     # TODO set the bounds to the bounds of the shape file of the Philippines
     # TODO this needs to be changed in the pipeline to obtain complete information
