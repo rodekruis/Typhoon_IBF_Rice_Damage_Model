@@ -1,65 +1,49 @@
 import numpy as np
-from numpy.lib.function_base import average
+import random
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.metrics import f1_score
+from xgboost import XGBClassifier
+import os
+from sklearn.feature_selection import RFECV
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.metrics import (
-    recall_score,
-    f1_score,
-    precision_score,
-    confusion_matrix,
-    make_scorer,
-)
 from sklearn.model_selection import (
     GridSearchCV,
     RandomizedSearchCV,
     StratifiedKFold,
     KFold,
 )
-from sklearn.feature_selection import SelectKBest, SequentialFeatureSelector
-from sklearn.ensemble import RandomForestClassifier
-from imblearn.over_sampling import SMOTE
-from imblearn.pipeline import Pipeline
-import importlib
-import os
-from sklearn.feature_selection import (
-    SelectKBest,
-    RFE,
-    mutual_info_regression,
-    f_regression,
-    mutual_info_classif,
-)
-import eli5
-from eli5.sklearn import PermutationImportance
-from sklearn.inspection import permutation_importance
-import xgboost as xgb
-import random
-import pickle
-import openpyxl
-from sklearn.feature_selection import SequentialFeatureSelector
-from sklearn.feature_selection import RFE
-from sklearn.feature_selection import RFECV
 
 
-def rf_binary_features(
+def f1_eval(y_pred, dtrain):
+    y_true = dtrain.get_label()
+    err = 1 - f1_score(y_true, np.round(y_pred))
+    return "f1_err", err
+
+
+def xgb_binary_features(
     X,
     y,
     features,
     search_space,
+    objective,
     cv_splits,
-    class_weight,
     min_features_to_select,
     GS_score,
     GS_randomized,
     GS_n_iter,
 ):
 
-    cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True, random_state=42)
+    cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
 
-    rf = RandomForestClassifier(class_weight=class_weight)
+    xgb = XGBClassifier(use_label_encoder=False, objective=objective, n_jobs=0,)
 
     selector = RFECV(
-        rf, step=1, cv=4, verbose=0, min_features_to_select=min_features_to_select
+        xgb, step=1, cv=4, verbose=0, min_features_to_select=min_features_to_select
     )
+
+    cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
 
     if GS_randomized == True:
         clf = RandomizedSearchCV(
@@ -86,19 +70,19 @@ def rf_binary_features(
     clf.fit(X, y)
     selected = list(clf.best_estimator_.support_)
     selected_features = [x for x, y in zip(features, selected) if y == True]
-    print(selected_features)
+    selected_params = clf.best_params_
 
-    return selected_features
+    return selected_features, selected_params
 
 
-def rf_binary_performance(
+def xgb_binary_performance(
     df_train_list,
     df_test_list,
     features,
     search_space,
     stratK,
     cv_splits,
-    class_weight,
+    objective,
     GS_score,
     GS_randomized,
     GS_n_iter,
@@ -106,6 +90,7 @@ def rf_binary_performance(
 
     train_score = []
     test_score = []
+    selected_params = []
     df_predicted = pd.DataFrame(columns=["year", "actual", "predicted"])
 
     for i in range(len(df_train_list)):
@@ -121,13 +106,22 @@ def rf_binary_performance(
         x_test = test[features]
         y_test = test["class_value_binary"]
 
+        # negative instances / positive instances
+        # weight_scale = sum(y_train == 0) / sum(y_train == 1)
+
         # Stratified or non-stratified CV
         if stratK == True:
             cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True)
         else:
             cv_folds = KFold(n_splits=cv_splits, shuffle=True)
 
-        steps = [("rf", RandomForestClassifier(class_weight=class_weight))]
+        steps = [
+            (
+                "xgb",
+                XGBClassifier(use_label_encoder=False, objective=objective, n_jobs=0,),
+            )
+        ]
+
         pipe = Pipeline(steps, verbose=0)
 
         # Applying GridSearch or RandomizedGridSearch
@@ -137,7 +131,7 @@ def rf_binary_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=0,
+                verbose=10,
                 return_train_score=True,
                 refit=True,
                 n_iter=GS_n_iter,
@@ -148,17 +142,17 @@ def rf_binary_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=0,
+                verbose=10,
                 return_train_score=True,
                 refit=True,
             )
 
         # Fitting the model on the full dataset
-        rf_fitted = mod.fit(x_train, y_train)
-        results = rf_fitted.cv_results_
+        xgb_fitted = mod.fit(x_train, y_train, xgb__eval_metric=f1_eval)
+        results = xgb_fitted.cv_results_
 
-        y_pred_test = rf_fitted.predict(x_test)
-        y_pred_train = rf_fitted.predict(x_train)
+        y_pred_test = xgb_fitted.predict(x_test)
+        y_pred_train = xgb_fitted.predict(x_train)
 
         train_score_f1 = f1_score(y_train, y_pred_train)
         test_score_f1 = f1_score(y_test, y_pred_test)
@@ -171,9 +165,11 @@ def rf_binary_performance(
         )
 
         df_predicted = pd.concat([df_predicted, df_predicted_temp])
+        selected_params.append(xgb_fitted.best_params_)
 
+        print(f"Selected Parameters: {xgb_fitted.best_params_}")
         print(f"Train score: {train_score_f1}")
         print(f"Test score: {test_score_f1}")
 
-    return df_predicted
+    return df_predicted, selected_params
 

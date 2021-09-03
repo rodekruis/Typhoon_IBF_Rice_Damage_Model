@@ -3,7 +3,7 @@ Loading in the libraries
 """
 #%% General Libraries
 import numpy as np
-from numpy.lib.function_base import average
+from numpy.lib.function_base import average, select
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
@@ -62,7 +62,7 @@ def rf_multi_features(
     rf = RandomForestClassifier(class_weight=class_weight)
 
     selector = RFECV(
-        rf, step=1, cv=4, verbose=10, min_features_to_select=min_features_to_select
+        rf, step=1, cv=4, verbose=0, min_features_to_select=min_features_to_select
     )
 
     if GS_randomized == True:
@@ -90,9 +90,9 @@ def rf_multi_features(
     clf.fit(X, y)
     selected = list(clf.best_estimator_.support_)
     selected_features = [x for x, y in zip(features, selected) if y == True]
-    print(selected_features)
+    selected_params = clf.best_params_
 
-    return selected_features
+    return selected_features, selected_params
 
 
 def rf_multi_performance(
@@ -110,6 +110,7 @@ def rf_multi_performance(
 
     train_score = []
     test_score = []
+    selected_params = []
     df_predicted = pd.DataFrame(columns=["year", "actual", "predicted"])
 
     for i in range(len(df_train_list)):
@@ -141,7 +142,7 @@ def rf_multi_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=0,
+                verbose=10,
                 return_train_score=True,
                 refit=True,
                 n_iter=GS_n_iter,
@@ -152,7 +153,7 @@ def rf_multi_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=0,
+                verbose=10,
                 return_train_score=True,
                 refit=True,
             )
@@ -175,9 +176,11 @@ def rf_multi_performance(
         )
 
         df_predicted = pd.concat([df_predicted, df_predicted_temp])
+        selected_params.append(rf_fitted.best_params_)
 
+        print(f"Selected Parameters: {rf_fitted.best_params_}")
         print(f"Train score: {train_score_f1}")
         print(f"Test score: {test_score_f1}")
 
-    return df_predicted
+    return df_predicted, selected_params
 
