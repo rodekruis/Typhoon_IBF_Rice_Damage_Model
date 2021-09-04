@@ -15,10 +15,107 @@ import openpyxl
 os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
 cdir = os.getcwd()
 
-file_name = "IBF_typhoon_model\\data\\combined_input_data\\input_data.xlsx"
+# Combined input data
+file_name = (
+    "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data_02.xlsx"
+)
 path = os.path.join(cdir, file_name)
 df = pd.read_excel(path, engine="openpyxl")
 
+# Typhoon information
+file_name = "IBF_typhoon_model\\data\\restricted_data\\data_overview.xlsx"
+path = os.path.join(cdir, file_name)
+df_typh_overview = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
+
+# Admin boundaries
+file_name = (
+    "IBF_typhoon_model\\data\\phl_administrative_boundaries\\phl_admbnda_adm3.shp"
+)
+path = os.path.join(cdir, file_name)
+df_phil = gpd.read_file(path)
+
+
+"""
+Typhoon information
+"""
+#%%
+print(df_typh_overview.columns)
+
+typhoons = df_typh_overview["name_year"]
+min(df_typh_overview["year"])
+max(df_typh_overview["year"])
+
+"""
+Regions Covered
+"""
+#%% Create plot
+mun_codes = df["mun_code"].unique()
+df_phil_covered = df_phil[df_phil["ADM3_PCODE"].isin(mun_codes)]
+
+fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+ax.set_aspect("equal")
+
+minx, miny, maxx, maxy = df_phil.total_bounds
+
+ax.set_xlim(minx, maxx)
+ax.set_ylim(miny, maxy)
+
+# edgecolor="black", linewidth=0.5
+
+df_phil.plot(ax=ax, color="lightgrey", zorder=1)
+
+df_phil_covered.plot(ax=ax, color="royalblue", zorder=2)
+
+file_name = "IBF_typhoon_model\\data\\figures\\area_covered.png"
+path = os.path.join(cdir, file_name)
+fig.savefig(path)
+print("Done")
+
+"""
+Typhoon Tracks
+"""
+#%%Read file
+file_name = "IBF_typhoon_model\\data\\gis_data\\typhoon_tracks\\tracks_filtered.shp"
+path = os.path.join(cdir, file_name)
+df_tracks = gpd.read_file(path)
+
+#%%Create random colors
+random.seed(1)
+rgb = np.random.rand(3,)
+print(rgb)
+
+tracks = df_tracks["SID"].unique()
+colors = []
+
+for track in range(len(tracks)):
+    rgb = np.random.rand(3,)
+    colors.append(rgb)
+
+color_dict = dict(zip(tracks, colors))
+df_tracks["color"] = df_tracks["SID"].map(color_dict)
+
+#%%Plotting
+fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+ax.set_aspect("equal")
+
+minx, miny, maxx, maxy = df_phil.total_bounds
+
+ax.set_xlim(minx, maxx)
+ax.set_ylim(miny, maxy)
+
+# edgecolor="black", linewidth=0.5
+
+df_tracks.plot(ax=ax, zorder=2, color=df_tracks["color"], linewidth=0.5)
+
+df_phil.plot(ax=ax, color="lightgrey", zorder=1)
+
+file_name = "IBF_typhoon_model\\data\\figures\\tracks.png"
+path = os.path.join(cdir, file_name)
+fig.savefig(path)
+print("Done")
+
+
+#%%
 """
 Checking for errors in the Rice Data
 """
