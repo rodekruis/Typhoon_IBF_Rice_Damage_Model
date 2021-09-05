@@ -46,6 +46,31 @@ min(df_typh_overview["year"])
 max(df_typh_overview["year"])
 
 """
+Descriptive statistic
+"""
+#%% Histogram of percentage loss
+fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+
+ax.hist(df["perc_loss"], bins=100)
+
+file_name = "IBF_typhoon_model\\data\\figures\\perc_loss_hist.png"
+path = os.path.join(cdir, file_name)
+fig.savefig(path)
+print("Done")
+
+#%% Histogram of percentage loss without zeros
+fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+
+df_plot = df[df["perc_loss"] > 0]
+
+ax.hist(df_plot["perc_loss"], bins=100)
+
+file_name = "IBF_typhoon_model\\data\\figures\\perc_loss_hist_nonzero.png"
+path = os.path.join(cdir, file_name)
+fig.savefig(path)
+print("Done")
+
+"""
 Regions Covered
 """
 #%% Create plot
@@ -60,11 +85,13 @@ minx, miny, maxx, maxy = df_phil.total_bounds
 ax.set_xlim(minx, maxx)
 ax.set_ylim(miny, maxy)
 
-# edgecolor="black", linewidth=0.5
-
 df_phil.plot(ax=ax, color="lightgrey", zorder=1)
 
 df_phil_covered.plot(ax=ax, color="royalblue", zorder=2)
+
+ax.axis("off")
+# ax.set_title('Areas for which data is collected')
+
 
 file_name = "IBF_typhoon_model\\data\\figures\\area_covered.png"
 path = os.path.join(cdir, file_name)
@@ -81,8 +108,6 @@ df_tracks = gpd.read_file(path)
 
 #%%Create random colors
 random.seed(1)
-rgb = np.random.rand(3,)
-print(rgb)
 
 tracks = df_tracks["SID"].unique()
 colors = []
@@ -96,20 +121,25 @@ df_tracks["color"] = df_tracks["SID"].map(color_dict)
 
 #%%Plotting
 fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+
 ax.set_aspect("equal")
+
 
 minx, miny, maxx, maxy = df_phil.total_bounds
 
 ax.set_xlim(minx, maxx)
 ax.set_ylim(miny, maxy)
 
-# edgecolor="black", linewidth=0.5
 
-df_tracks.plot(ax=ax, zorder=2, color=df_tracks["color"], linewidth=0.5)
+df_tracks.plot(ax=ax, zorder=3, color=df_tracks["color"], linewidth=0.5)
 
 df_phil.plot(ax=ax, color="lightgrey", zorder=1)
 
-file_name = "IBF_typhoon_model\\data\\figures\\tracks.png"
+df_phil_covered.plot(ax=ax, color="royalblue", zorder=2)
+
+ax.axis("off")
+
+file_name = "IBF_typhoon_model\\data\\figures\\area_covered_tracks.png"
 path = os.path.join(cdir, file_name)
 fig.savefig(path)
 print("Done")

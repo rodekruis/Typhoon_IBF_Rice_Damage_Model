@@ -14,17 +14,19 @@ import openpyxl
 os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
 cdir = os.getcwd()
 
+
 """
 Loading Data
 """
-
 #%% Damage sheet
-file_name = "IBF_typhoon_model\\data\\combined_input_data\\input_data.xlsx"
+file_name = (
+    "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data_02.xlsx"
+)
 path = os.path.join(cdir, file_name)
 df_total = pd.read_excel(path, engine="openpyxl")
 
 # typhoon overview sheet
-file_name = "IBF_typhoon_model\\data\\data_overview.xlsx"
+file_name = "IBF_typhoon_model\\data\\restricted_data\\data_overview.xlsx"
 path = os.path.join(cdir, file_name)
 df_typhoons = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
 
@@ -41,11 +43,19 @@ df_phil = gpd.read_file(path)
 # world map
 world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
+#%% Initial info
+#%%Add damage per typhoon
+sid_dict = dict(zip(df_typhoons["name_year"], df_typhoons["storm_id"]))
+typhoon_dict = dict(zip(df_typhoons["storm_id"], df_typhoons["name_year"]))
+
+sid_list = df_total["storm_id"].unique().tolist()
+typhoons = df_total["typhoon"].unique().tolist()
+
 
 """
 Creating damages figures: obtain DF
 """
-
+# region
 #%%Drop NA's from df
 df_total = df_total[df_total["perc_loss"].notnull()]
 
@@ -68,6 +78,162 @@ for sid in sid_list:
         damage_temp[["mun_code", "perc_loss"]], how="left", on="mun_code",
     )
     df_phil_damage.rename(columns={"perc_loss": typhoon_dict[sid]}, inplace=True)
+# endregion
+
+"""
+Plotting figure of typhoon track and wind
+"""
+# region
+
+#%%Creating dataframe to plot
+typhoon = "nock-ten2011"
+
+# Loading wind grid
+file_name = (
+    "IBF_typhoon_model\\data\\wind_data\\output\\" + typhoon + "_windgrid_output.csv"
+)
+path = os.path.join(cdir, file_name)
+df_wind = pd.read_csv(path)
+
+df_plot = pd.merge(
+    df_phil, df_wind, how="left", left_on=["ADM3_PCODE"], right_on=["adm3_pcode"]
+)
+
+fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+ax.set_aspect("equal")
+
+minx, miny, maxx, maxy = df_phil.total_bounds
+ax.set_xlim(minx, maxx)
+ax.set_ylim(miny, maxy)
+
+df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
+
+df_plot.plot(
+    ax=ax,
+    column="vmax_sust",
+    cmap="Blues",
+    vmin=0,
+    vmax=np.max(df_plot["vmax_sust"]),
+    zorder=2,
+)
+
+df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
+    ax=ax, zorder=3, linestyle=":", linewidth=2, color="black"
+)
+
+ax.axis("off")
+
+file_name = "IBF_typhoon_model\\data\\figures\\tracks_wind.png"
+path = os.path.join(cdir, file_name)
+fig.savefig(path)
+print("Done")
+
+# endregion
+
+
+"""
+Plotting figure of typhoon track and Rainfall
+"""
+# region
+
+#%%Creating dataframe to plot
+typhoon = "nock-ten2011"
+
+# Loading wind grid
+file_name = (
+    "IBF_typhoon_model\\data\\rainfall_data\\output_data\\"
+    + typhoon
+    + "\\"
+    + typhoon
+    + "_matrix.csv"
+)
+path = os.path.join(cdir, file_name)
+df_rain = pd.read_csv(path)
+
+df_plot = pd.merge(
+    df_phil, df_rain, how="left", left_on=["ADM3_PCODE"], right_on=["mun_code"]
+)
+
+fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+ax.set_aspect("equal")
+
+minx, miny, maxx, maxy = df_phil.total_bounds
+ax.set_xlim(minx, maxx)
+ax.set_ylim(miny, maxy)
+
+df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
+
+df_plot.plot(
+    ax=ax,
+    column="rainfall_max",
+    cmap="Blues",
+    vmin=0,
+    vmax=np.max(df_plot["rainfall_max"]),
+    zorder=2,
+)
+
+df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
+    ax=ax, zorder=3, linestyle=":", linewidth=2, color="black"
+)
+
+ax.axis("off")
+
+file_name = "IBF_typhoon_model\\data\\figures\\tracks_rainfall.png"
+path = os.path.join(cdir, file_name)
+fig.savefig(path)
+print("Done")
+
+# endregion
+
+"""
+Plotting figure of typhoon track and Minimum Track Distance
+"""
+# region
+
+#%%Creating dataframe to plot
+typhoon = "nock-ten2011"
+
+# Loading wind grid
+file_name = (
+    "IBF_typhoon_model\\data\\wind_data\\output\\" + typhoon + "_windgrid_output.csv"
+)
+path = os.path.join(cdir, file_name)
+df_wind = pd.read_csv(path)
+
+df_plot = pd.merge(
+    df_phil, df_wind, how="left", left_on=["ADM3_PCODE"], right_on=["adm3_pcode"]
+)
+
+fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+ax.set_aspect("equal")
+
+minx, miny, maxx, maxy = df_phil.total_bounds
+ax.set_xlim(minx, maxx)
+ax.set_ylim(miny, maxy)
+
+df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
+
+df_plot.plot(
+    ax=ax,
+    column="dis_track_min",
+    cmap="bone",
+    vmin=-200,
+    vmax=np.max(df_plot["dis_track_min"]),
+    zorder=2,
+)
+
+df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
+    ax=ax, zorder=3, linestyle=":", linewidth=2, color="black"
+)
+
+ax.axis("off")
+
+file_name = "IBF_typhoon_model\\data\\figures\\tracks_track_distance.png"
+path = os.path.join(cdir, file_name)
+fig.savefig(path)
+print("Done")
+
+# endregion
 
 
 """
