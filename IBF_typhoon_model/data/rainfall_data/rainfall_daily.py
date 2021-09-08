@@ -294,6 +294,7 @@ def cumulative_rainfall(
                 sum_rainfall = [i["mean"] for i in sum_rainfall]
 
                 # data is mm/h: *10 to get cm/h
+                # / 10 give mm/h because the factor in the tif file is 10
                 def convert(x):
                     return x / 10 * 24
 

@@ -143,7 +143,8 @@ for typhoon_name in typhoon_events:
             data_vars={
                 "max_sustained_wind": (
                     "time",
-                    0.514444 * forcast_df.max_sustained_wind.values,
+                    0.514444
+                    * forcast_df.max_sustained_wind.values,  # conversion from kn to meter/s
                 ),
                 "environmental_pressure": (
                     "time",
@@ -447,6 +448,8 @@ for typhoon_name in typhoon_events:
 
     # In[24]:
 
+    # TODO correct & re-run
+    # HERE V_MAX IS THE MAXIMUM SUSTAINED WINDSPEED IN M/S FOR THE 1 MINUTE AVERAGE --> USE AS INPUT
     typhhon_df.head()
     np.min(typhhon_df["v_max"])
     np.max(typhhon_df["dis_track_min"])
@@ -461,7 +464,10 @@ for typhoon_name in typhoon_events:
         typhhon_df["v_max"] * 1.21 * 1.9 * 2.23694
     )  # mph 1.9 is factor to drive gust and sustained wind
     typhhon_df["vmax_sust_mph"] = typhhon_df["v_max"] * 1.21 * 2.23694
+
+    # TODO this is wrong, should be
     typhhon_df["vmax_sust"] = typhhon_df["v_max"] * 1.21 * 1.94384
+    typhhon_df["vmax_sust"] = typhhon_df["v_max"]
 
     # In[26]:
 
