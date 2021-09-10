@@ -229,113 +229,119 @@ def cumulative_rainfall(
     :raises:
     """
     # File_list is a list of tif files for each date
-    file_list = download_gpm(start_date, end_date, download_path, type_imerg)
+    i = 0
+    while i < 1:
+        try:
+            file_list = download_gpm(start_date, end_date, download_path, type_imerg)
+            i = 2
+        except:
+            pass
 
-    if not file_list:
-        force_download = True
-        file_list = download_gpm(
-            start_date, end_date, download_path, type_imerg, force_download
-        )
+    # if not file_list:
+    #     force_download = True
+    #     file_list = download_gpm(
+    #         start_date, end_date, download_path, type_imerg, force_download
+    #     )
 
-    sum_rainfall = []
+    # sum_rainfall = []
 
-    file_list = sorted(file_list)
+    # file_list = sorted(file_list)
 
-    if file_list:
+    # if file_list:
 
-        print("Reading GPM data...\n", end="", flush=True)
+    #     print("Reading GPM data...\n", end="", flush=True)
 
-        # # pulling the file information so it can be used
-        # raster_list = []
-        # transform = ""
-        # for input_raster in file_list:
-        #     with rasterio.open(input_raster) as src:
-        #         array = src.read(1)
-        #         transform = src.transform  # src.affine <- affine is now deprecated
-        #     array = np.ma.masked_where(array == 29999, array)
-        #     raster_list.append(array)
+    #     # # pulling the file information so it can be used
+    #     # raster_list = []
+    #     # transform = ""
+    #     # for input_raster in file_list:
+    #     #     with rasterio.open(input_raster) as src:
+    #     #         array = src.read(1)
+    #     #         transform = src.transform  # src.affine <- affine is now deprecated
+    #     #     array = np.ma.masked_where(array == 29999, array)
+    #     #     raster_list.append(array)
 
-        # print("Calculating cumulative rainfall...\n", end="", flush=True)
-        # sum_raster = np.add.reduce(raster_list)
+    #     # print("Calculating cumulative rainfall...\n", end="", flush=True)
+    #     # sum_raster = np.add.reduce(raster_list)
 
-        # #data is mm/h: *10 to get cm/h
-        # sum_raster = sum_raster / 10
-        # if type_imerg == "final":
-        #     sum_raster = sum_raster * 24
+    #     # #data is mm/h: *10 to get cm/h
+    #     # sum_raster = sum_raster / 10
+    #     # if type_imerg == "final":
+    #     #     sum_raster = sum_raster * 24
 
-        # sum_rainfall = zonal_stats(
-        #     admin_geometry,
-        #     sum_raster,
-        #     stats="mean",
-        #     nodata=-999,
-        #     all_touched=True,
-        #     affine=transform,
-        # )
+    #     # sum_rainfall = zonal_stats(
+    #     #     admin_geometry,
+    #     #     sum_raster,
+    #     #     stats="mean",
+    #     #     nodata=-999,
+    #     #     all_touched=True,
+    #     #     affine=transform,
+    #     # )
 
-        # sum_rainfall = [i["mean"] for i in sum_rainfall]
+    #     # sum_rainfall = [i["mean"] for i in sum_rainfall]
 
-        # TODO adding from here
-        # pulling the file information so it can be used
-        daily_rainfall_list = []
-        transform = ""
-        # creating dataframe to save daily rainfall per municipality
-        df_rainfall = pd.DataFrame(admin_gdf["ADM3_PCODE"])
-        i = 1
+    #     # TODO adding from here
+    #     # pulling the file information so it can be used
+    #     daily_rainfall_list = []
+    #     transform = ""
+    #     # creating dataframe to save daily rainfall per municipality
+    #     df_rainfall = pd.DataFrame(admin_gdf["ADM3_PCODE"])
+    #     i = 1
 
-        for input_raster in file_list:
+    #     for input_raster in file_list:
 
-            print(input_raster)
+    #         print(input_raster)
 
-            with rasterio.open(input_raster) as src:
+    #         with rasterio.open(input_raster) as src:
 
-                array = src.read(1)
-                transform = src.transform  # src.affine <- affine is now deprecated
+    #             array = src.read(1)
+    #             transform = src.transform  # src.affine <- affine is now deprecated
 
-                sum_rainfall = zonal_stats(
-                    admin_geometry,
-                    array,
-                    stats="mean",
-                    nodata=29999,
-                    all_touched=True,
-                    affine=transform,
-                )
+    #             sum_rainfall = zonal_stats(
+    #                 admin_geometry,
+    #                 array,
+    #                 stats="mean",
+    #                 nodata=29999,
+    #                 all_touched=True,
+    #                 affine=transform,
+    #             )
 
-                sum_rainfall = [i["mean"] for i in sum_rainfall]
+    #             sum_rainfall = [i["mean"] for i in sum_rainfall]
 
-                # data is mm/h: *10 to get cm/h
-                # / 10 give mm/h because the factor in the tif file is 10 --> mm / h
-                def convert(x):
-                    return x / 10
+    #             # data is mm/h: *10 to get cm/h
+    #             # / 10 give mm/h because the factor in the tif file is 10 --> mm / h
+    #             def convert(x):
+    #                 return x / 10
 
-                sum_rainfall_converted = [convert(item) for item in sum_rainfall]
+    #             sum_rainfall_converted = [convert(item) for item in sum_rainfall]
 
-                # column name --> obtain time frame from input_raster name
-                # Time frame is preceded by '-S'
-                identify_str = (
-                    ".3IMERG."  # string in file name after which data can be found
-                )
-                str_index = input_raster.find(identify_str)
-                len_date = 16  # length of string to include as name
-                column_name = input_raster[
-                    str_index
-                    + len(identify_str) : str_index
-                    + len(identify_str)
-                    + len_date
-                ]
+    #             # column name --> obtain time frame from input_raster name
+    #             # Time frame is preceded by '-S'
+    #             identify_str = (
+    #                 ".3IMERG."  # string in file name after which data can be found
+    #             )
+    #             str_index = input_raster.find(identify_str)
+    #             len_date = 16  # length of string to include as name
+    #             column_name = input_raster[
+    #                 str_index
+    #                 + len(identify_str) : str_index
+    #                 + len(identify_str)
+    #                 + len_date
+    #             ]
 
-                df_rainfall[column_name] = sum_rainfall_converted
-                i += 1
+    #             df_rainfall[column_name] = sum_rainfall_converted
+    #             i += 1
 
-        # rainfall_max_daily = df_rainfall.max(axis=1)
-        # rainfall_sum = df_rainfall.sum(axis=1)
+    #     # rainfall_max_daily = df_rainfall.max(axis=1)
+    #     # rainfall_sum = df_rainfall.sum(axis=1)
 
-    else:
-        print(
-            "No files were found/downloaded from the appropriate folder. Please investigate further.\n"
-        )
-        pass
+    # else:
+    #     print(
+    #         "No files were found/downloaded from the appropriate folder. Please investigate further.\n"
+    #     )
+    #     pass
 
-    return df_rainfall
+    return 1
 
 
 def process_tyhoon_data(typhoon_to_process, typhoon_name):
@@ -410,12 +416,12 @@ def process_tyhoon_data(typhoon_to_process, typhoon_name):
     # print(output_gdf.head())
 
     # TOD move the rainfall data into the other CSV file.
-    if output_matrix_csv_name:
-        print(
-            "Exporting output to %s...\n" % output_matrix_csv_name, end="", flush=True
-        )
-        # output_df = output_gdf.drop("geometry", axis=1)
-        df_rainfall.to_csv(output_matrix_csv_file)
+    # if output_matrix_csv_name:
+    #     print(
+    #         "Exporting output to %s...\n" % output_matrix_csv_name, end="", flush=True
+    #     )
+    #     # output_df = output_gdf.drop("geometry", axis=1)
+    #     df_rainfall.to_csv(output_matrix_csv_file)
 
     t_total = dt.datetime.now()
     print("Completed in %fs\n" % (t_total - t0).total_seconds(), end="", flush=True)
