@@ -4,6 +4,9 @@ IBF_typhoon_model/data/restricted_data/
 # Scripts for own use only
 IBF_typhoon_model/test.py
 
+# Historical wind data script Aki
+IBF_typhoon_model/data/wind_data/obtaining_historical_wind_data_aki.py
+
 # All GPM folders: rainfall data that is too large to upload
 GPM*/
 

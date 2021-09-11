@@ -1,6 +1,6 @@
 # Rainfall data
 
-This folder contains the needed data and scripts for obtaining and processing the rainfall data. The downloaded data is the 'Global Precipitation Measurement' obtained from NASA. Information on the data, what it entails and how it can be obtained can be found at the bottom. There are two types of rainfall that can be downloaded and processed: daily and half hourly rainfall.
+This folder contains the needed data and scripts for obtaining and processing the rainfall data. The downloaded data is the 'Global Precipitation Measurement' obtained from NASA. Information on the data, what it entails and how it can be obtained can be found at the bottom. There are two types of rainfall that can be downloaded and processed: daily and half hourly rainfall. Due to the size of the downloaded GPM files, they are not included on the GitHub, but can be downloaded locally.
 
 ## Daily Rainfall
 

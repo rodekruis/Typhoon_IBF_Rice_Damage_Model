@@ -24,7 +24,6 @@ for i in range(len(typhoon_metadata)):
         "/", "-"
     )
 
-
 typhoon_metadata["landfall_date_time"] = (
     typhoon_metadata["landfalldate"] + "-" + typhoon_metadata["landfall_time"]
 )
@@ -33,7 +32,7 @@ typhoons = typhoon_metadata["typhoon"]
 
 
 """
-Obtain 6h maximum rainfall
+Obtain 6h maximum rainfall in mm/h
 """
 #%% Processing the data into an excel sheet
 time_frame = 12  # in half hours
@@ -57,17 +56,13 @@ for typhoon in typhoons:
 
     # Loading the data
     file_name = (
-        "IBF_typhoon_model\\data\\rainfall_data\\output\\"
-        + typhoon
-        + "\\"
-        + typhoon
-        + "_matrix.csv"
+        "IBF_typhoon_model\\data\\rainfall_data\\output_hhr\\" + typhoon + "_matrix.csv"
     )
     path = os.path.join(cdir, file_name)
     df_rainfall = pd.read_csv(path)
 
     # Convert column names to date format
-    for col in df_rainfall.columns[2:]:
+    for col in df_rainfall.columns[1:]:
         date_format = datetime.datetime.strptime(col, "%Y%m%d-S%H%M%S")
         df_rainfall = df_rainfall.rename(columns={col: date_format})
 
@@ -100,10 +95,11 @@ for typhoon in typhoons:
 
 df_rainfall_final = df_rainfall_final.append(df_rainfall_single)
 file_path = "IBF_typhoon_model\\data\\rainfall_data\\rainfall_max_6h.csv"  # in mm/h
+df_rainfall_final.to_csv(file_path, index=False)
 
 
 """
-Obtain 24h maximum rainfall
+Obtain 24h maximum rainfall in mm/h
 """
 #%% Processing the data into an excel sheet
 time_frame = 48  # in half hours
@@ -127,17 +123,13 @@ for typhoon in typhoons:
 
     # Loading the data
     file_name = (
-        "IBF_typhoon_model\\data\\rainfall_data\\output\\"
-        + typhoon
-        + "\\"
-        + typhoon
-        + "_matrix.csv"
+        "IBF_typhoon_model\\data\\rainfall_data\\output\\" + typhoon + "_matrix.csv"
     )
     path = os.path.join(cdir, file_name)
     df_rainfall = pd.read_csv(path)
 
     # Convert column names to date format
-    for col in df_rainfall.columns[2:]:
+    for col in df_rainfall.columns[1:]:
         date_format = datetime.datetime.strptime(col, "%Y%m%d-S%H%M%S")
         df_rainfall = df_rainfall.rename(columns={col: date_format})
 
@@ -171,3 +163,4 @@ for typhoon in typhoons:
 df_rainfall_final = df_rainfall_final.append(df_rainfall_single)
 file_path = "IBF_typhoon_model\\data\\rainfall_data\\rainfall_max_24h.csv"  # in mm/h
 
+df_rainfall_final.to_csv(file_path, index=False)
