@@ -1,5 +1,6 @@
 # Folder with restricted data
-IBF_typhoon_model/data/restricted_data/
+IBF_typhoon_model/data/restricted_data/combined_input_data
+IBF_typhoon_model/data/restricted_data/rice_data
 
 # Scripts for own use only
 IBF_typhoon_model/test.py
@@ -7,7 +8,7 @@ IBF_typhoon_model/test.py
 # Historical wind data script Aki
 IBF_typhoon_model/data/wind_data/obtaining_historical_wind_data_aki.py
 
-# All GPM folders: rainfall data that is too large to upload
+# All GPM folders: rainfall data that is too large to upload 
 GPM*/
 
 # IBTracks file that is too large
