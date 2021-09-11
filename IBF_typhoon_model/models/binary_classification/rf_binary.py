@@ -48,6 +48,7 @@ def rf_binary_features(
     GS_score,
     GS_randomized,
     GS_n_iter,
+    verbose,
 ):
 
     cv_folds = StratifiedKFold(n_splits=cv_splits, shuffle=True, random_state=42)
@@ -64,7 +65,7 @@ def rf_binary_features(
             param_distributions=search_space,
             scoring=GS_score,
             cv=cv_folds,
-            verbose=10,
+            verbose=verbose,
             return_train_score=True,
             refit=True,
             n_iter=GS_n_iter,
@@ -75,7 +76,7 @@ def rf_binary_features(
             param_grid=search_space,
             scoring=GS_score,
             cv=cv_folds,
-            verbose=10,
+            verbose=verbose,
             return_train_score=True,
             refit=True,
         )
@@ -99,6 +100,7 @@ def rf_binary_performance(
     GS_score,
     GS_randomized,
     GS_n_iter,
+    verbose,
 ):
 
     train_score = []
@@ -135,7 +137,7 @@ def rf_binary_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=10,
+                verbose=verbose,
                 return_train_score=True,
                 refit=True,
                 n_iter=GS_n_iter,
@@ -146,7 +148,7 @@ def rf_binary_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=10,
+                verbose=verbose,
                 return_train_score=True,
                 refit=True,
             )
