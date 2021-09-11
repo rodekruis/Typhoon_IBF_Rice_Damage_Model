@@ -337,7 +337,7 @@ cdir = os.getcwd()
 # Typhoons for which to run
 typhoons = ["ketsana2009"]
 typhoons = [
-    # "ketsana2009",
+    "ketsana2009",
     "kompasu2010",
     "nock-ten2011",
     "nanmadol2011",
@@ -438,6 +438,31 @@ for i in range(len(typhoon_metadata)):
     )
 
 # Creating a dictionary for the typhoons, with corresponding information (enddate, startdate, imerg_type)
+# typhoon_metadata = typhoon_metadata.set_index("typhoon").to_dict()
+# typhoons_dict = dict()
+# i = 0
+# for typhoon in typhoons:
+#     case = typhoon
+#     typhoons_dict[case] = {
+#         "typhoon": typhoon,
+#         "dates": [
+#             dt.datetime.strptime(
+#                 typhoon_metadata["startdate"][typhoon], "%d-%m-%Y"
+#             ).date(),
+#             dt.datetime.strptime(
+#                 typhoon_metadata["enddate"][typhoon], "%d-%m-%Y"
+#             ).date(),
+#             dt.datetime.strptime(
+#                 typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
+#             ).date()
+#             - dt.timedelta(days=3),
+#         ],
+#         "imerg_type": typhoon_metadata["imerg_type"][typhoon],
+#     }
+#     i = i + 1
+
+# TODO Temporarily changed this
+# Creating a dictionary for the typhoons, with corresponding information (enddate, startdate, imerg_type)
 typhoon_metadata = typhoon_metadata.set_index("typhoon").to_dict()
 typhoons_dict = dict()
 i = 0
@@ -447,10 +472,7 @@ for typhoon in typhoons:
         "typhoon": typhoon,
         "dates": [
             dt.datetime.strptime(
-                typhoon_metadata["startdate"][typhoon], "%d-%m-%Y"
-            ).date(),
-            dt.datetime.strptime(
-                typhoon_metadata["enddate"][typhoon], "%d-%m-%Y"
+                typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
             ).date(),
             dt.datetime.strptime(
                 typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"

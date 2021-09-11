@@ -30,7 +30,6 @@ typhoon_metadata["landfall_date_time"] = (
 
 typhoons = typhoon_metadata["typhoon"]
 
-
 """
 Obtain 6h maximum rainfall in mm/h
 """
@@ -78,7 +77,7 @@ for typhoon in typhoons:
         )
 
         available_dates = [
-            date for date in df_rainfall.columns[2:] if (date >= start) & (date < end)
+            date for date in df_rainfall.columns[1:] if (date >= start) & (date < end)
         ]
 
         # To check if there is data available for all needed dates
@@ -123,7 +122,7 @@ for typhoon in typhoons:
 
     # Loading the data
     file_name = (
-        "IBF_typhoon_model\\data\\rainfall_data\\output\\" + typhoon + "_matrix.csv"
+        "IBF_typhoon_model\\data\\rainfall_data\\output_hhr\\" + typhoon + "_matrix.csv"
     )
     path = os.path.join(cdir, file_name)
     df_rainfall = pd.read_csv(path)
@@ -145,7 +144,7 @@ for typhoon in typhoons:
         )
 
         available_dates = [
-            date for date in df_rainfall.columns[2:] if (date >= start) & (date < end)
+            date for date in df_rainfall.columns[1:] if (date >= start) & (date < end)
         ]
 
         # To check if there is data available for all needed dates
@@ -155,7 +154,7 @@ for typhoon in typhoons:
 
         df_mean_rainfall[i] = df_rainfall[available_dates].mean(axis="columns")
 
-    df_mean_rainfall["maximum_6h"] = df_mean_rainfall.max(axis="columns")
+    df_mean_rainfall["maximum_24h"] = df_mean_rainfall.max(axis="columns")
 
     df_rainfall_single = df_mean_rainfall[["mun_code", "maximum_24h"]]
     df_rainfall_single["typhoon"] = typhoon
@@ -164,3 +163,5 @@ df_rainfall_final = df_rainfall_final.append(df_rainfall_single)
 file_path = "IBF_typhoon_model\\data\\rainfall_data\\rainfall_max_24h.csv"  # in mm/h
 
 df_rainfall_final.to_csv(file_path, index=False)
+
+# %%

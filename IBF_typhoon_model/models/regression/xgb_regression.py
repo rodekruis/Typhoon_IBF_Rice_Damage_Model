@@ -29,6 +29,7 @@ def xgb_regression_features(
     objective,
     GS_randomized,
     GS_n_iter,
+    verbose,
 ):
 
     cv_folds = KFold(n_splits=cv_splits, shuffle=True)
@@ -36,7 +37,7 @@ def xgb_regression_features(
     xgb = XGBRegressor(objective=objective)
 
     selector = RFECV(
-        xgb, step=1, cv=4, verbose=10, min_features_to_select=min_features_to_select
+        xgb, step=1, cv=4, verbose=0, min_features_to_select=min_features_to_select
     )
 
     if GS_randomized == True:
@@ -45,7 +46,7 @@ def xgb_regression_features(
             param_distributions=search_space,
             scoring=GS_score,
             cv=cv_folds,
-            verbose=10,
+            verbose=verbose,
             return_train_score=True,
             refit=True,
             n_iter=GS_n_iter,
@@ -56,7 +57,7 @@ def xgb_regression_features(
             param_grid=search_space,
             scoring=GS_score,
             cv=cv_folds,
-            verbose=10,
+            verbose=verbose,
             return_train_score=True,
             refit=True,
         )
@@ -64,9 +65,9 @@ def xgb_regression_features(
     regr.fit(X, y)
     selected = list(regr.best_estimator_.support_)
     selected_features = [x for x, y in zip(features, selected) if y == True]
-    print(selected_features)
+    selected_params = regr.best_params_
 
-    return selected_features
+    return selected_features, selected_params
 
 
 def xgb_regression_performance(
@@ -79,12 +80,14 @@ def xgb_regression_performance(
     GS_score,
     GS_randomized,
     GS_n_iter,
+    verbose,
 ):
 
     train_score_mae_list = []
     test_score_mae_list = []
     train_score_rmse_list = []
     test_score_rmse_list = []
+    selected_params = []
     df_predicted = pd.DataFrame(columns=["year", "actual", "predicted"])
 
     for i in range(len(df_train_list)):
@@ -115,7 +118,7 @@ def xgb_regression_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=10,
+                verbose=verbose,
                 return_train_score=True,
                 refit=True,
                 n_iter=GS_n_iter,
@@ -126,7 +129,7 @@ def xgb_regression_performance(
                 search_space,
                 scoring=GS_score,
                 cv=cv_folds,
-                verbose=10,
+                verbose=verbose,
                 return_train_score=True,
                 refit=True,
             )
@@ -154,8 +157,11 @@ def xgb_regression_performance(
 
         df_predicted = pd.concat([df_predicted, df_predicted_temp])
 
+        selected_params.append(xgb_fitted.best_params_)
+
+        print(f"Selected Parameters {xgb_fitted.best_params_}")
         print(f"Train score: {train_score_mae}")
         print(f"Test score: {test_score_mae}")
 
-    return df_predicted
+    return df_predicted, selected_params
 
