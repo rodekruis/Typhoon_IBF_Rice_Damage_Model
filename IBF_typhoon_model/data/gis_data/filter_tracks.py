@@ -1,12 +1,19 @@
+""""
+Obtaining the relevant track info by filtering all typhoon tracks shape file. 
+Input:
+(1) Shape file (and corresponding files) of full typhoon tracks. 
+    Obtained from: https://www.ncdc.noaa.gov/ibtracs/index.php?name=ib-v4-access
+(2) Excel sheet with typhoons to be filtered and their SID as 'storm_id'
+Output:
+(1) Shape file of the filtered typhoon tracks
+"""
+
 #%% Loading Libraries
 import os
 import geopandas as gpd
 import pandas as pd
 
 
-"""
-Createing shapefile with tracks for specific typhoons
-"""
 #%% Loading data
 os.chdir("c:\\Users\\Marieke\\GitHub\\Rice_Field_Damage_Philippines\\app")
 cdir = os.getcwd()
