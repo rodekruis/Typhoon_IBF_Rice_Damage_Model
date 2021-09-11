@@ -8,40 +8,33 @@ These data are then outputted into a CSV file for each typhoon that it is run fo
 ONLY ONCE for each typhoon.
 REQUIRED INPUTS:
 (i) Typhoon name.
-(ii) Start/End date for the typhoon.
-(iii) IMERG data type: early, late or final: the data respository also needs to be checked, lest files are moved away
+(ii) Start/Landfall/End date for the typhoon.
+(iii) Landfall time
+(iiii) IMERG data type: early, late or final: the data respository also needs to be checked, lest files are moved away
                         and the data doesn't exist anymore.
-(iv) If the files need 'p-coding', then the p-code in the file needs to be specified (mostly deprecated now).
-(v) Data-set file names for the municipalities, track and windspeed data files.
 OUTPUTS:
-    (i) A CSV of all the features, save the rainfall data.
-    (ii) A CSV file of the rainfall data.
+    (i) Downloaded GPM data
+    (ii) CSV file with daily rainfall (mm/24h)
 """
-#%%
+#%% Import Libraries
 import datetime as dt
 import ftplib
 import gzip
 import os
 import zipfile
-from ftplib import FTP
-
 from ftplib import FTP_TLS
 import ssl
-
 import pandas as pd
 import geopandas as gpd
 import numpy as np
 import rasterio
 from fiona.crs import from_epsg
-from rasterio.merge import merge
 from rasterio.transform import array_bounds
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from rasterstats import zonal_stats
-from scipy import signal
-
 import shutil
 
-#%%
+#%% Functions used
 def date_range(start_date, end_date):
     return [
         str(start_date + dt.timedelta(days=x))
@@ -114,9 +107,7 @@ def reproject_raster(
     return dst_array, dst_affine
 
 
-def download_gpm(
-    start_date, end_date, download_path, type_imerg, force_download_early_data=False
-):
+def download_gpm(start_date, end_date, download_path, type_imerg):
 
     """ Method that downloads gpm files.
     This method looks in the data repositories of NASA for rainfall data.
@@ -124,28 +115,23 @@ def download_gpm(
     :param end_date: A date object denoting the END date to search for rainfall data.
     :param download_path: A string denoting where the data should be downloaded to.
     :param type_imerg: Hart-coded st
-    :param force_download_early_data: A bool switch to trigger forced download of early data.
-        If this is FALSE, then the method looks in the normal place. If set to TRUE, it looks
-        in the archive location. This is only done after checking whether the start and end dates
-        cover the archive time (i.e., >= 01/12/2016).
-    :returns: file_list, a  list of files?
+    :returns: file_list: List of the downloaded files
     :raises: ftplib.allerrors
     """
     # Username and password for logging in
+    # Can create own account on NASA site
     ppm_username = "mvanbrussel@rodekruis.nl"
     base_url = ""
 
-    # Connection to the site, if pasting in chrome: ftp://arthurhou.pps.eosdis.nasa.gov/
+    # Connection to the site, if pasting in chrome: https://arthurhouhttps.pps.eosdis.nasa.gov/
     # Directory to where the data is saved
     if type_imerg == "final":
         base_url = "arthurhou.pps.eosdis.nasa.gov"
-        data_dir = "/pub/gpmdata/"  # data_dir/yyyy/mm/dd/gis
 
     date_list = date_range(start_date, end_date)
     file_list = []
 
     # A string denoting where the data should be downloaded to
-    # =gpm path defined in process_typhoon_data function
     os.makedirs(download_path, exist_ok=True)
 
     print("Connecting to: %s...\n" % base_url, end="", flush=True)
@@ -155,7 +141,6 @@ def download_gpm(
     with FTP_TLS(base_url) as ftp:
 
         try:
-            # ftp.debugging = 2
             ftp.login(ppm_username, ppm_username)
             print("Login OK...\n", end="", flush=True)
         except ftplib.all_errors as e:
@@ -163,7 +148,6 @@ def download_gpm(
 
         for date in date_list:
             print(date)
-
             d, m, y = reversed(date.split("-"))
             day_path = os.path.join(download_path, y + m + d)
             # Make a folder for each day, to save GPM data
@@ -216,7 +200,7 @@ def cumulative_rainfall(
     :param end_date: A date object signifying the end date of the typhoon.
     :param download_path: A string denoting where the data should be downloaded to.
     :param type_imerg: A string denoting the data file type: "early" or "final"
-    :returns: sum_rainfall: A list of the total rainfall over the dates
+    :returns: df_rainfall = dataframe with the daily rainfall in mm for each municipality and date (mm/24h)
     :raises:
     """
     # File_list is a list of tif files for each date
@@ -229,49 +213,15 @@ def cumulative_rainfall(
         )
 
     sum_rainfall = []
-
     file_list = sorted(file_list)
 
     if file_list:
 
         print("Reading GPM data...\n", end="", flush=True)
 
-        # # pulling the file information so it can be used
-        # raster_list = []
-        # transform = ""
-        # for input_raster in file_list:
-        #     with rasterio.open(input_raster) as src:
-        #         array = src.read(1)
-        #         transform = src.transform  # src.affine <- affine is now deprecated
-        #     array = np.ma.masked_where(array == 29999, array)
-        #     raster_list.append(array)
-
-        # print("Calculating cumulative rainfall...\n", end="", flush=True)
-        # sum_raster = np.add.reduce(raster_list)
-
-        # #data is mm/h: *10 to get cm/h
-        # sum_raster = sum_raster / 10
-        # if type_imerg == "final":
-        #     sum_raster = sum_raster * 24
-
-        # sum_rainfall = zonal_stats(
-        #     admin_geometry,
-        #     sum_raster,
-        #     stats="mean",
-        #     nodata=-999,
-        #     all_touched=True,
-        #     affine=transform,
-        # )
-
-        # sum_rainfall = [i["mean"] for i in sum_rainfall]
-
-        # TODO adding from here
-        # pulling the file information so it can be used
-        daily_rainfall_list = []
         transform = ""
         # creating dataframe to save daily rainfall per municipality
         df_rainfall = pd.DataFrame(admin_gdf["ADM3_PCODE"])
-        i = 1
 
         for input_raster in file_list:
 
@@ -280,8 +230,7 @@ def cumulative_rainfall(
             with rasterio.open(input_raster) as src:
 
                 array = src.read(1)
-                transform = src.transform  # src.affine <- affine is now deprecated
-
+                transform = src.transform
                 sum_rainfall = zonal_stats(
                     admin_geometry,
                     array,
@@ -293,18 +242,26 @@ def cumulative_rainfall(
 
                 sum_rainfall = [i["mean"] for i in sum_rainfall]
 
-                # data is mm/h: *10 to get cm/h
+                # data is 0.1 mm/h:
                 # / 10 give mm/h because the factor in the tif file is 10
                 def convert(x):
                     return x / 10 * 24
 
                 sum_rainfall_converted = [convert(item) for item in sum_rainfall]
 
-                df_rainfall[i] = sum_rainfall_converted
-                i += 1
+                # Column name: obtain date from input_raster name
+                # String after which date can be found
+                identify_str = "3IMERG."
+                str_index = input_raster.find(identify_str)
+                len_date = 8
+                column_name = input_raster[
+                    str_index
+                    + len(identify_str) : str_index
+                    + len(identify_str)
+                    + len_date
+                ]
 
-        rainfall_max_daily = df_rainfall.max(axis=1)
-        rainfall_sum = df_rainfall.sum(axis=1)
+                df_rainfall[column_name] = sum_rainfall_converted
 
     else:
         print(
@@ -312,7 +269,7 @@ def cumulative_rainfall(
         )
         pass
 
-    return rainfall_max_daily, rainfall_sum
+    return df_rainfall
 
 
 def process_tyhoon_data(typhoon_to_process, typhoon_name):
@@ -323,15 +280,9 @@ def process_tyhoon_data(typhoon_to_process, typhoon_name):
 
     typhoon = typhoon_to_process.get("typhoon")
 
-    # Specify location of datasets --> where to output the data should go
-    subfolder = typhoon + "/"
-    workspace = os.path.abspath(
-        os.path.join(current_path, "./output_data/" + subfolder)
-    )
-
     # Start/End date for precipitation data, get from the dictionary
-    start_date = typhoon_to_process.get("dates")[0]
-    end_date = typhoon_to_process.get("dates")[1]
+    start_date = min(typhoon_to_process.get("dates"))
+    end_date = max(typhoon_to_process.get("dates"))
     print("start_date is:", start_date, "end date of typhoon is:", end_date)
 
     # IMERG data type, either "early" (6hr), "late" (18hr) or "final" (4 months),
@@ -351,54 +302,36 @@ def process_tyhoon_data(typhoon_to_process, typhoon_name):
     t0 = dt.datetime.now()
 
     # Specify the names to save the GPM data (folder) and the output file
-    gpm_path = os.path.join(workspace, "GPM")
-    output_matrix_csv_file = os.path.join(workspace, output_matrix_csv_name)
-
-    output_columns = [
-        "area_km2",
-        "mun_code",
-        "rainfall_max",
-        "rainfall_sum",
-        "geometry",
-    ]
-
-    output_gdf = gpd.GeoDataFrame(columns=output_columns, crs=from_epsg(force_epsg))
-
-    # admin_gdf is not given as input for the function, but in the code that is run, it is downloaded and defined
-    print("Assigning P codes...\n", end="", flush=True)
-    output_gdf["mun_code"] = admin_gdf[p_code]
-
-    # .area --> built in python function that gives are. Converted to km2
-    print("Calculating areas...\n", end="", flush=True)
-    output_gdf["area_km2"] = admin_gdf.area / 10 ** 6
+    subfolder = typhoon + "/"
+    gpm_path = os.path.join(gpm_folder_path, subfolder, "GPM")
+    output_matrix_csv_file = os.path.join(output_path, output_matrix_csv_name)
 
     # Calculating cumulative rainfall
     if not imerg_type == "trmm":
-        output_gdf["rainfall_max"], output_gdf["rainfall_sum"] = cumulative_rainfall(
+        df_rainfall = cumulative_rainfall(
             admin_geometry_wgs84, start_date, end_date, gpm_path, imerg_type
         )
 
-    # Assigning geometry
-    output_gdf.geometry = admin_gdf.geometry
-
-    print(output_gdf.head())
-
-    # TOD move the rainfall data into the other CSV file.
+    # Move the rainfall data into the other CSV file.
     if output_matrix_csv_name:
         print(
             "Exporting output to %s...\n" % output_matrix_csv_name, end="", flush=True
         )
-        output_df = output_gdf.drop("geometry", axis=1)
-        output_df.to_csv(output_matrix_csv_file)
+        df_rainfall.to_csv(output_matrix_csv_file, index=False)
 
     t_total = dt.datetime.now()
     print("Completed in %fs\n" % (t_total - t0).total_seconds(), end="", flush=True)
 
 
-##########################
-### FILL IN INPUT HERE ###
-##########################
-#%%
+###################################################################
+### FILL IN INPUT HERE
+###################################################################
+
+#%% Setting path and workspace_admin directory
+os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
+cdir = os.getcwd()
+
+# Typhoons for which to run
 typhoons = ["kammuri2019"]
 typhoons = [
     "ketsana2009",
@@ -459,23 +392,36 @@ typhoons = [
     "krovanh2020",
 ]
 
-delete_folders = True
+# Setting the number of days prior to the landfall data for which to collect data
+days_to_landfall = 3
 
-# Setting path and workspace_admin directory
-current_path = os.path.dirname(os.path.abspath(__file__))
-workspace_admin = os.path.abspath(os.path.join(current_path, ".."))
+# Setting path to save the GPM data
+gpm_file_name = "IBF_typhoon_model/data/rainfall_data/output_daily/gpm"
+gpm_folder_path = os.path.join(cdir, gpm_file_name)
+
+# Setting path to save the obtained DataFrames
+output_file_name = "IBF_typhoon_model/data/rainfall_data/output_daily"
+output_path = os.path.join(cdir, output_file_name)
+
+# Default = FALSE
+# IMPORTANT: setting to TRUE means that all downloaded GPM files will be deleted and re-downloaded
+delete_folders = False
 
 # Setting directory for administrative boundaries shape file
 admin_file_name = (
-    "PHL_administrative_boundaries/phl_admbnda_adm3_psa_namria_20200529_fixed.shp"
+    "IBF_typhoon_model/data/phl_administrative_boundaries/phl_admbnda_adm3.shp"
 )
-admin_file = os.path.join(workspace_admin, admin_file_name)
+admin_file = os.path.join(cdir, admin_file_name)
 
 # Setting directory for typhoon metadata csv file
 typhoon_metadata_filename = os.path.join(
-    workspace_admin, "Rainfall/input_data/metadata_typhoons.csv"
+    cdir, "IBF_typhoon_model/data/rainfall_data/input/metadata_typhoons.csv"
 )
 typhoon_metadata = pd.read_csv(typhoon_metadata_filename, delimiter=",")
+
+#%%##################################################################
+### START OF PROCESSING
+###################################################################
 
 # To make sure the dates can be converted to date type
 for i in range(len(typhoon_metadata)):
@@ -483,8 +429,11 @@ for i in range(len(typhoon_metadata)):
         "/", "-"
     )
     typhoon_metadata["enddate"][i] = typhoon_metadata["enddate"][i].replace("/", "-")
+    typhoon_metadata["landfalldate"][i] = typhoon_metadata["landfalldate"][i].replace(
+        "/", "-"
+    )
 
-# Creating a dictionary for the typhoons, with corresponding information (enddate, startdate, imerg_type)
+# Creating a dictionary for the typhoons, with corresponding information
 typhoon_metadata = typhoon_metadata.set_index("typhoon").to_dict()
 typhoons_dict = dict()
 i = 0
@@ -499,6 +448,10 @@ for typhoon in typhoons:
             dt.datetime.strptime(
                 typhoon_metadata["enddate"][typhoon], "%d-%m-%Y"
             ).date(),
+            dt.datetime.strptime(
+                typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
+            ).date()
+            - dt.timedelta(days=days_to_landfall),
         ],
         "imerg_type": typhoon_metadata["imerg_type"][typhoon],
     }
@@ -526,16 +479,18 @@ else:
 if admin_gdf.crs != force_epsg:
     admin_gdf = reproject_file(admin_gdf, admin_file_name, force_epsg)
 
-
-#%%
-# Start loop to process typhoon-data
+#%%##################################################################
+### START OF PROCESSING
+###################################################################
 for key in typhoons_dict:
 
     print("Processing typhoon data for:", key)
 
     # Removing the typhoon folder if it is present, so code can be re-run without errors
     if delete_folders == True:
-        dir_temp = os.path.join(current_path, "output_data", key, "GPM")
+        dir_temp = os.path.join(
+            cdir, "IBF_typhoon_model/data/rainfall_data/output_daily/gpm", key, "GPM"
+        )
         try:
             shutil.rmtree(dir_temp)
             print(key, " GPM folder removed")
@@ -543,4 +498,6 @@ for key in typhoons_dict:
             print("No ", key, " GPM folder present")
 
     process_tyhoon_data(typhoons_dict[key], key)
+
+
 # %%
