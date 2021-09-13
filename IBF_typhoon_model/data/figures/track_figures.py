@@ -80,10 +80,21 @@ for typhoon in typhoons:
 
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
+    ax.axis("off")
+    ax.set_title(f"Percentage Loss for {typhoon}")
 
     df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
-    gpd_plot.plot(ax=ax, column=column_color, cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
+    gpd_plot.plot(
+        ax=ax,
+        column=column_color,
+        cmap=cmap,
+        vmin=vmin,
+        vmax=vmax,
+        zorder=2,
+        legend=True,
+        legend_kwds={"shrink": 0.5},
+    )
 
     df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
         ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
@@ -130,10 +141,21 @@ for typhoon in typhoons:
 
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
+    ax.axis("off")
+    ax.set_title(f"Maximum 6 hour rainfall in mm/h for {typhoon}")
 
     df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
-    gpd_plot.plot(ax=ax, column=column_color, cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
+    gpd_plot.plot(
+        ax=ax,
+        column=column_color,
+        cmap=cmap,
+        vmin=vmin,
+        vmax=vmax,
+        zorder=2,
+        legend=True,
+        legend_kwds={"shrink": 0.5},
+    )
 
     df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
         ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
@@ -187,10 +209,21 @@ for typhoon in typhoons:
 
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
+    ax.axis("off")
+    ax.set_title(f"Maximum wind speed in m/s for {typhoon}")
 
     df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
-    gpd_plot.plot(ax=ax, column=column_color, cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
+    gpd_plot.plot(
+        ax=ax,
+        column=column_color,
+        cmap=cmap,
+        vmin=vmin,
+        vmax=vmax,
+        zorder=2,
+        legend=True,
+        legend_kwds={"shrink": 0.5},
+    )
 
     df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
         ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
@@ -245,6 +278,8 @@ for typhoon in typhoons:
 
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
+    ax.axis("off")
+    ax.set_title(f"Percentage Loss and track distance of {buffer/1000}km for {typhoon}")
 
     df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
@@ -298,6 +333,8 @@ for typhoon in typhoons:
 
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
+    ax.axis("off")
+    ax.set_title(f"Damage higher than 30% for {typhoon}")
 
     df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
@@ -325,3 +362,5 @@ for typhoon in typhoons:
 print("Done")
 # endregion
 
+
+# %%
