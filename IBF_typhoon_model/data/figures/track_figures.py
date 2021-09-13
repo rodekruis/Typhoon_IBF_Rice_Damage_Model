@@ -20,7 +20,7 @@ Loading Data
 """
 #%% Damage sheet
 file_name = (
-    "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data_02.xlsx"
+    "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data_05.xlsx"
 )
 path = os.path.join(cdir, file_name)
 df_total = pd.read_excel(path, engine="openpyxl")
@@ -43,8 +43,7 @@ df_phil = gpd.read_file(path)
 # world map
 world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
-#%% Initial info
-#%%Add damage per typhoon
+# Initial Info
 sid_dict = dict(zip(df_typhoons["name_year"], df_typhoons["storm_id"]))
 typhoon_dict = dict(zip(df_typhoons["storm_id"], df_typhoons["name_year"]))
 
@@ -54,21 +53,24 @@ typhoons = df_total["typhoon"].unique().tolist()
 
 """
 Creating damages figures: Creating single figures in loop and saving
+PERCENTAGE LOSS
 """
 # region
 #%% Loop through all typhoons
-column_color = 'perc_loss'
+column_color = "perc_loss"
 vmin = 0
 vmax = 1
-cmap = 'Reds'
+cmap = "Reds"
 output_folder = "IBF_typhoon_model\\data\\figures\\track_images_damage"
 output_file_name = "_track_damage"
 
 for typhoon in typhoons:
 
     print(typhoon)
-    df_plot = df_total[df_total['typhoon']==typhoon]
-    df_plot = pd.merge(df_plot, df_phil, how='left', left_on=['mun_code'], right_on=['ADM3_PCODE'])
+    df_plot = df_total[df_total["typhoon"] == typhoon]
+    df_plot = pd.merge(
+        df_plot, df_phil, how="left", left_on=["mun_code"], right_on=["ADM3_PCODE"]
+    )
     gpd_plot = gpd.GeoDataFrame(df_plot)
 
     fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
@@ -81,29 +83,15 @@ for typhoon in typhoons:
 
     df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
-    gpd.plot.plot(
-        ax=ax,
-        column=column_color,
-        cmap="Reds",
-        vmin=0,
-        vmax=1,
-        zorder=2
-    )
+    gpd_plot.plot(ax=ax, column=column_color, cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
 
     df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
         ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
     )
 
-    path = os.path.join(cdir, output_folder, typhoon
-        + "_track_damage.png")
-    
-    file_name = (
-        "IBF_typhoon_model\\data\\figures\\track_images_damage\\"
-        + typhoon
-        + "_track_damage.png"
-    )
-    fig.savefig(file_name)
+    path = os.path.join(cdir, output_folder, typhoon + output_file_name)
 
+    fig.savefig(path)
     plt.close()
 
 
@@ -111,237 +99,29 @@ print("Done")
 # endregion
 
 """
-Creating damages figures: obtain DF
-"""
-# region
-# #%%Drop NA's from df
-# df_total = df_total[df_total["perc_loss"].notnull()]
-
-# #%%Add damage per typhoon
-# sid_dict = dict(zip(df_typhoons["name_year"], df_typhoons["storm_id"]))
-# typhoon_dict = dict(zip(df_typhoons["storm_id"], df_typhoons["name_year"]))
-
-# sid_list = df_total["storm_id"].unique().tolist()
-# typhoons = df_total["typhoon"].unique().tolist()
-
-# # Allign column names of shapefile and damage df
-# df_phil.rename(columns={"ADM3_PCODE": "mun_code"}, inplace=True)
-# df_phil_damage = df_phil.copy()
-
-# # Add damage data
-# for sid in sid_list:
-
-#     damage_temp = df_total[df_total["storm_id"] == sid]
-#     df_phil_damage = df_phil_damage.merge(
-#         damage_temp[["mun_code", "perc_loss"]], how="left", on="mun_code",
-#     )
-#     df_phil_damage.rename(columns={"perc_loss": typhoon_dict[sid]}, inplace=True)
-# endregion
-
-"""
-Plotting figure of typhoon track and wind
-"""
-# region
-
-#%%Creating dataframe to plot
-typhoon = "nock-ten2011"
-
-# Loading wind grid
-file_name = (
-    "IBF_typhoon_model\\data\\wind_data\\output\\" + typhoon + "_windgrid_output.csv"
-)
-path = os.path.join(cdir, file_name)
-df_wind = pd.read_csv(path)
-
-df_plot = pd.merge(
-    df_phil, df_wind, how="left", left_on=["ADM3_PCODE"], right_on=["adm3_pcode"]
-)
-
-fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
-ax.set_aspect("equal")
-
-minx, miny, maxx, maxy = df_phil.total_bounds
-ax.set_xlim(minx, maxx)
-ax.set_ylim(miny, maxy)
-
-df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
-
-df_plot.plot(
-    ax=ax,
-    column="vmax_sust",
-    cmap="Blues",
-    vmin=0,
-    vmax=np.max(df_plot["vmax_sust"]),
-    zorder=2,
-)
-
-df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
-    ax=ax, zorder=3, linestyle=":", linewidth=2, color="black"
-)
-
-ax.axis("off")
-
-file_name = "IBF_typhoon_model\\data\\figures\\tracks_wind.png"
-path = os.path.join(cdir, file_name)
-fig.savefig(path)
-print("Done")
-
-# endregion
-
-
-"""
-Plotting figure of typhoon track and Rainfall
-"""
-# region
-
-#%%Creating dataframe to plot
-typhoon = "nock-ten2011"
-
-# Loading wind grid
-file_name = (
-    "IBF_typhoon_model\\data\\rainfall_data\\output_data\\"
-    + typhoon
-    + "\\"
-    + typhoon
-    + "_matrix.csv"
-)
-path = os.path.join(cdir, file_name)
-df_rain = pd.read_csv(path)
-
-df_plot = pd.merge(
-    df_phil, df_rain, how="left", left_on=["ADM3_PCODE"], right_on=["mun_code"]
-)
-
-fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
-ax.set_aspect("equal")
-
-minx, miny, maxx, maxy = df_phil.total_bounds
-ax.set_xlim(minx, maxx)
-ax.set_ylim(miny, maxy)
-
-df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
-
-df_plot.plot(
-    ax=ax,
-    column="rainfall_max",
-    cmap="Blues",
-    vmin=0,
-    vmax=np.max(df_plot["rainfall_max"]),
-    zorder=2,
-)
-
-df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
-    ax=ax, zorder=3, linestyle=":", linewidth=2, color="black"
-)
-
-ax.axis("off")
-
-file_name = "IBF_typhoon_model\\data\\figures\\tracks_rainfall.png"
-path = os.path.join(cdir, file_name)
-fig.savefig(path)
-print("Done")
-
-# endregion
-
-"""
-Plotting figure of typhoon track and Minimum Track Distance
-"""
-# region
-
-#%%Creating dataframe to plot
-typhoon = "nock-ten2011"
-
-# Loading wind grid
-file_name = (
-    "IBF_typhoon_model\\data\\wind_data\\output\\" + typhoon + "_windgrid_output.csv"
-)
-path = os.path.join(cdir, file_name)
-df_wind = pd.read_csv(path)
-
-df_plot = pd.merge(
-    df_phil, df_wind, how="left", left_on=["ADM3_PCODE"], right_on=["adm3_pcode"]
-)
-
-fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
-ax.set_aspect("equal")
-
-minx, miny, maxx, maxy = df_phil.total_bounds
-ax.set_xlim(minx, maxx)
-ax.set_ylim(miny, maxy)
-
-df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
-
-df_plot.plot(
-    ax=ax,
-    column="dis_track_min",
-    cmap="bone",
-    vmin=-200,
-    vmax=np.max(df_plot["dis_track_min"]),
-    zorder=2,
-)
-
-df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
-    ax=ax, zorder=3, linestyle=":", linewidth=2, color="black"
-)
-
-ax.axis("off")
-
-file_name = "IBF_typhoon_model\\data\\figures\\tracks_track_distance.png"
-path = os.path.join(cdir, file_name)
-fig.savefig(path)
-print("Done")
-
-# endregion
-
-
-"""
-Creating damages figures: Creating single figure
-"""
-# region
-#%% Creating single figure
-fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
-ax.set_aspect("equal")
-
-typhoon = "durian2006"
-
-minx, miny, maxx, maxy = df_phil.total_bounds
-
-ax.set_xlim(minx, maxx)
-ax.set_ylim(miny, maxy)
-
-df_phil_damage.plot(ax=ax, color="whitesmoke", zorder=1)
-
-df_phil_damage.plot(
-    ax=ax,
-    column=typhoon,
-    cmap="Reds",
-    vmin=0,
-    vmax=1,
-    zorder=2
-    # legend=True
-    # cax=cax,
-)
-
-df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
-    ax=ax, zorder=3, linestyle=":", linewidth=2, color="black"
-)
-
-fig.savefig("tracks_damage.png")
-
-plt.show()
-
-print("Done")
-# endregion
-
-"""
 Creating damages figures: Creating single figures in loop and saving
-Tracks and Percentage Damage
+MAXIMUM 6 HOUR RAINFALL
 """
 # region
 #%% Loop through all typhoons
+column_color = "rainfall_max_6h"
+vmin = 0
+vmax = 46
+cmap = "Blues"
+output_folder = "IBF_typhoon_model\\data\\figures\\track_images_rainfall"
+output_file_name = "_track_max_6h_rainfall"
+
+path = os.path.join(cdir, "IBF_typhoon_model/data/rainfall_data/rainfall_max_6h.csv")
+df_rainfall_max_6h = pd.read_csv(path)
+
 for typhoon in typhoons:
 
     print(typhoon)
+    df_plot = df_rainfall_max_6h[df_rainfall_max_6h["typhoon"] == typhoon]
+    df_plot = pd.merge(
+        df_plot, df_phil, how="left", left_on=["mun_code"], right_on=["ADM3_PCODE"]
+    )
+    gpd_plot = gpd.GeoDataFrame(df_plot)
 
     fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
     ax.set_aspect("equal")
@@ -351,30 +131,17 @@ for typhoon in typhoons:
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
 
-    df_phil_damage.plot(ax=ax, color="whitesmoke", zorder=1)
+    df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
-    df_phil_damage.plot(
-        ax=ax,
-        column=typhoon,
-        cmap="Reds",
-        vmin=0,
-        vmax=1,
-        zorder=2
-        # legend=True
-        # cax=cax,
-    )
+    gpd_plot.plot(ax=ax, column=column_color, cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
 
     df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
         ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
     )
 
-    file_name = (
-        "IBF_typhoon_model\\data\\figures\\track_images_damage\\"
-        + typhoon
-        + "_track_damage.png"
-    )
-    fig.savefig(file_name)
+    path = os.path.join(cdir, output_folder, typhoon + output_file_name)
 
+    fig.savefig(path)
     plt.close()
 
 
@@ -383,22 +150,93 @@ print("Done")
 
 """
 Creating damages figures: Creating single figures in loop and saving
-Track and Precentage Damage and Buffer
+MAXIMUM SUSTAINED WIND
+"""
+# region
+#%% Loop through all typhoons
+column_color = "v_max"
+vmin = 0
+vmax = 87
+cmap = "Blues"
+output_folder = "IBF_typhoon_model\\data\\figures\\track_images_wind"
+output_file_name = "_track_vmax"
+
+# path = os.path.join(cdir, "IBF_typhoon_model/data/rainfall_data/rainfall_max_6h.csv")
+# df_rainfall_max_6h = pd.read_csv(path)
+
+for typhoon in typhoons:
+
+    print(typhoon)
+
+    path = (
+        "IBF_typhoon_model\\data\\wind_data\\output\\"
+        + typhoon
+        + "_windgrid_output.csv"
+    )
+    df_plot = pd.read_csv(os.path.join(cdir, path))
+
+    df_plot = pd.merge(
+        df_plot, df_phil, how="left", left_on=["adm3_pcode"], right_on=["ADM3_PCODE"]
+    )
+    gpd_plot = gpd.GeoDataFrame(df_plot)
+
+    fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+    ax.set_aspect("equal")
+
+    minx, miny, maxx, maxy = df_phil.total_bounds
+
+    ax.set_xlim(minx, maxx)
+    ax.set_ylim(miny, maxy)
+
+    df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
+
+    gpd_plot.plot(ax=ax, column=column_color, cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
+
+    df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
+        ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
+    )
+
+    path = os.path.join(cdir, output_folder, typhoon + output_file_name)
+
+    fig.savefig(path)
+    plt.close()
+
+
+print("Done")
+# endregion
+
+"""
+Creating damages figures: Creating single figures in loop and saving
+PERCENTAGE DAMAGE AND BUFFER
 """
 # region
 
 #%% Adding a track buffer
-buffer = 300000
+# Plotting the damages and tracks with a buffer of 500km, to show that allmost all damage fall within this area
+# Used to confirm that predictions only need to be made for municipalities that are within 500km distance from the track
+buffer = 500000
 df_tracks_buff = df_tracks.copy()
 df_tracks_buff = df_tracks_buff.to_crs("EPSG:25395")
 
 df_tracks_buff["geometry"] = df_tracks_buff.buffer(buffer)
 df_tracks_buff = df_tracks_buff.to_crs("EPSG:4326")
 
+column_color = "perc_loss"
+vmin = 0
+vmax = 1
+cmap = "Reds"
+output_folder = "IBF_typhoon_model\\data\\figures\\track_images_damage_buffer"
+output_file_name = "_track_damage_buffer"
+
 #%% Loop through all typhoons
 for typhoon in typhoons:
 
     print(typhoon)
+    df_plot = df_total[df_total["typhoon"] == typhoon]
+    df_plot = pd.merge(
+        df_plot, df_phil, how="left", left_on=["mun_code"], right_on=["ADM3_PCODE"]
+    )
+    gpd_plot = gpd.GeoDataFrame(df_plot)
 
     fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
     ax.set_aspect("equal")
@@ -408,17 +246,10 @@ for typhoon in typhoons:
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
 
-    df_phil_damage.plot(ax=ax, color="whitesmoke", zorder=1)
+    df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
-    df_phil_damage.plot(
-        ax=ax,
-        column=typhoon,
-        cmap="Reds",
-        vmin=0,
-        vmax=1,
-        zorder=2
-        # legend=True
-        # cax=cax,
+    gpd_plot.plot(
+        ax=ax, column=column_color, cmap="Reds", vmin=vmin, vmax=vmax, zorder=2
     )
 
     df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
@@ -429,12 +260,8 @@ for typhoon in typhoons:
         ax=ax, alpha=0.01, zorder=3, color="blue"
     )
 
-    file_name = (
-        "IBF_typhoon_model\\data\\figures\\track_images_damage_buffer\\"
-        + typhoon
-        + "_track_damage.png"
-    )
-    fig.savefig(file_name)
+    path = os.path.join(cdir, output_folder, typhoon + output_file_name)
+    fig.savefig(path)
 
     plt.close()
 
@@ -442,49 +269,59 @@ for typhoon in typhoons:
 print("Done")
 # endregion
 
-
 """
-Creating damages figures: Multiple images in one figure
+Creating damages figures: Creating single figures in loop and saving
+PERCENTAGE LOSS: ABOVE OR BELOW 30%
 """
 # region
-#%% Looping through typhoons for creating plots
-# print(typhoons)
-# typhoons = ["atsani2020", "tembin2017"]
-
-nrows = 19
-ncols = 3
-figs, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(60, 120), facecolor="white")
-
-minx, miny, maxx, maxy = df_phil.total_bounds
+#%% Loop through all typhoons
+column_color = "damage_above_30"
+vmin = -1
+vmax = 1
+cmap = "Reds"
+output_folder = "IBF_typhoon_model\\data\\figures\\track_images_binary"
+output_file_name = "_binary_damage"
 
 for typhoon in typhoons:
 
     print(typhoon)
+    df_plot = df_total[df_total["typhoon"] == typhoon]
+    df_plot = pd.merge(
+        df_plot, df_phil, how="left", left_on=["mun_code"], right_on=["ADM3_PCODE"]
+    )
+    gpd_plot = gpd.GeoDataFrame(df_plot)
 
-    idx = typhoons.index(typhoon)
-    idx_row = int(np.floor(idx / ncols))
-    idx_col = int(idx - idx_row * ncols)
+    fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+    ax.set_aspect("equal")
 
-    axs[idx_row, idx_col].set_aspect("equal")
+    minx, miny, maxx, maxy = df_phil.total_bounds
 
-    axs[idx_row, idx_col].set_xlim(minx, maxx)
-    axs[idx_row, idx_col].set_ylim(miny, maxy)
-    axs[idx_row, idx_col].set_title(typhoon)
+    ax.set_xlim(minx, maxx)
+    ax.set_ylim(miny, maxy)
 
-    axs[idx_row, idx_col].axis("off")
+    df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
 
-    df_phil_damage.plot(ax=axs[idx_row, idx_col], color="whitesmoke", zorder=1)
-
-    df_phil_damage.plot(
-        ax=axs[idx_row, idx_col], column=typhoon, cmap="Reds", vmin=0, vmax=1, zorder=2
+    gpd_plot.plot(
+        ax=ax,
+        column=column_color,
+        cmap=cmap,
+        vmin=vmin,
+        vmax=vmax,
+        zorder=2,
+        legend=True,
+        categorical=True,
     )
 
     df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
-        ax=axs[idx_row, idx_col], linestyle=":", linewidth=2, color="black", zorder=3
+        ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
     )
 
-# plt.show()
+    path = os.path.join(cdir, output_folder, typhoon + output_file_name)
 
-figs.savefig("tracks_damage.png")
+    fig.savefig(path)
+    plt.close()
+
+
+print("Done")
 # endregion
 
