@@ -49,4 +49,13 @@ The regression model predicts on a continuous scale.
 
 ## GitHub Repo Structure
 
-This repo contains the data and code used in the projects
+This repo contains the data and code used in the projects including documentation to explain the steps taken. The two main files are:
+
+- [The data preparation notebook](https://github.com/rodekruis/Typhoon_IBF_Rice_Damage_Model/blob/main/IBF_typhoon_model/data/data_preparation_notebook.ipynb) <br>
+This notebook contains a step-by-step process of obtaining and processing all the data, resulting in the final input data set used in the model.
+
+
+- [The model results notebook](https://github.com/rodekruis/Typhoon_IBF_Rice_Damage_Model/blob/main/IBF_typhoon_model/models/model_results.ipynb) <br>
+This notebook contains a step-by-step process of training and testing a set of models, to find the optimal ones, on the input data obtained.
+
+The folder contain all supporting files, brief documentation and code comments.
