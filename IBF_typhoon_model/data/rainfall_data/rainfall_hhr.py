@@ -205,6 +205,8 @@ def cumulative_rainfall(
     :returns: sum_rainfall: list of precipitation rates in mm/hr for each half hour time interval
     :raises:
     """
+    not_found_files = []
+
     # File_list is a list of tif files for each date
     file_list = download_gpm(start_date, end_date, download_path, type_imerg)
 
@@ -230,40 +232,47 @@ def cumulative_rainfall(
 
             print(input_raster)
 
-            with rasterio.open(input_raster) as src:
+            try:
 
-                array = src.read(1)
-                transform = src.transform
-                sum_rainfall = zonal_stats(
-                    admin_geometry,
-                    array,
-                    stats="mean",
-                    nodata=29999,
-                    all_touched=True,
-                    affine=transform,
-                )
+                with rasterio.open(input_raster) as src:
 
-                sum_rainfall = [i["mean"] for i in sum_rainfall]
+                    array = src.read(1)
+                    transform = src.transform
+                    sum_rainfall = zonal_stats(
+                        admin_geometry,
+                        array,
+                        stats="mean",
+                        nodata=29999,
+                        all_touched=True,
+                        affine=transform,
+                    )
 
-                # / 10 give mm/h because the factor in the tif file is 10 --> mm / h
-                def convert(x):
-                    return x / 10
+                    sum_rainfall = [i["mean"] for i in sum_rainfall]
 
-                sum_rainfall_converted = [convert(item) for item in sum_rainfall]
+                    # / 10 give mm/h because the factor in the tif file is 10 --> mm / h
+                    def convert(x):
+                        return x / 10
 
-                # column name --> obtain time frame from input_raster name
-                # Time frame is preceded by '-S'
-                identify_str = ".3IMERG."
-                str_index = input_raster.find(identify_str)
-                len_date = 16  # length of string to include as name
-                column_name = input_raster[
-                    str_index
-                    + len(identify_str) : str_index
-                    + len(identify_str)
-                    + len_date
-                ]
+                    sum_rainfall_converted = [convert(item) for item in sum_rainfall]
 
-                df_rainfall[column_name] = sum_rainfall_converted
+                    # column name --> obtain time frame from input_raster name
+                    # Time frame is preceded by '-S'
+                    identify_str = ".3IMERG."
+                    str_index = input_raster.find(identify_str)
+                    len_date = 16  # length of string to include as name
+                    column_name = input_raster[
+                        str_index
+                        + len(identify_str) : str_index
+                        + len(identify_str)
+                        + len_date
+                    ]
+
+                    df_rainfall[column_name] = sum_rainfall_converted
+
+            except:
+
+                print("not found")
+                not_found_files.append(input_raster)
 
     else:
         print(
@@ -271,7 +280,7 @@ def cumulative_rainfall(
         )
         pass
 
-    return df_rainfall
+    return df_rainfall, not_found_files
 
 
 def process_tyhoon_data(typhoon_to_process, typhoon_name):
@@ -310,7 +319,7 @@ def process_tyhoon_data(typhoon_to_process, typhoon_name):
 
     # Calculating cumulative rainfall
     if not imerg_type == "trmm":
-        df_rainfall = cumulative_rainfall(
+        df_rainfall, not_found_files = cumulative_rainfall(
             admin_geometry_wgs84, start_date, end_date, gpm_path, imerg_type
         )
 
@@ -325,17 +334,21 @@ def process_tyhoon_data(typhoon_to_process, typhoon_name):
     t_total = dt.datetime.now()
     print("Completed in %fs\n" % (t_total - t0).total_seconds(), end="", flush=True)
 
+    return not_found_files
+
 
 #%%#########################
 ### FILL IN INPUT HERE ###
 ##########################
+
+not_found_files = []
 
 # Setting path and workspace_admin directory
 os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
 cdir = os.getcwd()
 
 # Typhoons for which to run
-typhoons = ["ketsana2009"]
+typhoons = ["kompasu2010"]
 typhoons = [
     "ketsana2009",
     "kompasu2010",
@@ -394,6 +407,7 @@ typhoons = [
     "parma2009",
 ]
 
+
 # Setting the number of days prior to the landfall data for which to collect data
 days_to_landfall = 3
 
@@ -402,7 +416,7 @@ gpm_file_name = "IBF_typhoon_model/data/rainfall_data/output_hhr/gpm"
 gpm_folder_path = os.path.join(cdir, gpm_file_name)
 
 # Setting path to save the obtained DataFrames
-output_file_name = "IBF_typhoon_model/data/rainfall_data/output_hhr"
+output_file_name = "IBF_typhoon_model/data/rainfall_data/output_hhr_research"
 output_path = os.path.join(cdir, output_file_name)
 
 # Default = FALSE
@@ -438,31 +452,6 @@ for i in range(len(typhoon_metadata)):
     )
 
 # Creating a dictionary for the typhoons, with corresponding information (enddate, startdate, imerg_type)
-# typhoon_metadata = typhoon_metadata.set_index("typhoon").to_dict()
-# typhoons_dict = dict()
-# i = 0
-# for typhoon in typhoons:
-#     case = typhoon
-#     typhoons_dict[case] = {
-#         "typhoon": typhoon,
-#         "dates": [
-#             dt.datetime.strptime(
-#                 typhoon_metadata["startdate"][typhoon], "%d-%m-%Y"
-#             ).date(),
-#             dt.datetime.strptime(
-#                 typhoon_metadata["enddate"][typhoon], "%d-%m-%Y"
-#             ).date(),
-#             dt.datetime.strptime(
-#                 typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
-#             ).date()
-#             - dt.timedelta(days=3),
-#         ],
-#         "imerg_type": typhoon_metadata["imerg_type"][typhoon],
-#     }
-#     i = i + 1
-
-# TODO Temporarily changed this
-# Creating a dictionary for the typhoons, with corresponding information (enddate, startdate, imerg_type)
 typhoon_metadata = typhoon_metadata.set_index("typhoon").to_dict()
 typhoons_dict = dict()
 i = 0
@@ -472,16 +461,41 @@ for typhoon in typhoons:
         "typhoon": typhoon,
         "dates": [
             dt.datetime.strptime(
-                typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
+                typhoon_metadata["startdate"][typhoon], "%d-%m-%Y"
+            ).date(),
+            dt.datetime.strptime(
+                typhoon_metadata["enddate"][typhoon], "%d-%m-%Y"
             ).date(),
             dt.datetime.strptime(
                 typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
             ).date()
-            - dt.timedelta(days=3),
+            - dt.timedelta(days=days_to_landfall),
         ],
         "imerg_type": typhoon_metadata["imerg_type"][typhoon],
     }
     i = i + 1
+
+# # TODO Temporarily changed this + run once & remove 'not_found_files' relations
+# # Creating a dictionary for the typhoons, with corresponding information (enddate, startdate, imerg_type)
+# typhoon_metadata = typhoon_metadata.set_index("typhoon").to_dict()
+# typhoons_dict = dict()
+# i = 0
+# for typhoon in typhoons:
+#     case = typhoon
+#     typhoons_dict[case] = {
+#         "typhoon": typhoon,
+#         "dates": [
+#             dt.datetime.strptime(
+#                 typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
+#             ).date(),
+#             dt.datetime.strptime(
+#                 typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
+#             ).date()
+#             - dt.timedelta(days=3),
+#         ],
+#         "imerg_type": typhoon_metadata["imerg_type"][typhoon],
+#     }
+#     i = i + 1
 
 # Loading admin-files only once instead of every time
 print("Importing adminfile...\n", end="", flush=True)
@@ -526,7 +540,21 @@ for key in typhoons_dict:
         except:
             print("No ", key, " GPM folder present")
 
-    process_tyhoon_data(typhoons_dict[key], key)
+    not_found_files_single = process_tyhoon_data(typhoons_dict[key], key)
+    not_found_files.append(not_found_files_single)
 
 
-# %%
+#%% Saving not found files
+import pickle
+
+print(not_found_files)
+path = os.path.join(cdir, "IBF_typhoon_model/data/rainfall_data/not_found_files.pkl")
+with open(path, "wb") as f:
+    pickle.dump(not_found_files, f)
+
+# # %%
+# path = os.path.join(cdir, "IBF_typhoon_model/data/rainfall_data/not_found_files.pkl")
+# infile = open(path,'rb')
+# new_dict = pickle.load(infile)
+# infile.close()
+# # %%

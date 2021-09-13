@@ -39,7 +39,7 @@ mov_window = 12  # in half hours
 before_landfall_h = 72  # how many hours before landfall to include
 num_intervals = math.floor((2 * 72 - time_frame) / mov_window) + 1
 
-df_rainfall_final = pd.DataFrame(columns=["typhoon", "mun_code", "maximum_6h"])
+df_rainfall_final = pd.DataFrame(columns=["typhoon", "mun_code", "rainfall_max_6h"])
 
 for typhoon in typhoons:
 
@@ -87,12 +87,13 @@ for typhoon in typhoons:
 
         df_mean_rainfall[i] = df_rainfall[available_dates].mean(axis="columns")
 
-    df_mean_rainfall["maximum_6h"] = df_mean_rainfall.max(axis="columns")
+    df_mean_rainfall["rainfall_max_6h"] = df_mean_rainfall.max(axis="columns")
 
-    df_rainfall_single = df_mean_rainfall[["mun_code", "maximum_6h"]]
+    df_rainfall_single = df_mean_rainfall[["mun_code", "rainfall_max_6h"]]
     df_rainfall_single["typhoon"] = typhoon
+    df_rainfall_final = df_rainfall_final.append(df_rainfall_single)
 
-df_rainfall_final = df_rainfall_final.append(df_rainfall_single)
+
 file_path = "IBF_typhoon_model\\data\\rainfall_data\\rainfall_max_6h.csv"  # in mm/h
 df_rainfall_final.to_csv(file_path, index=False)
 
@@ -106,7 +107,7 @@ mov_window = 12  # in half hours
 before_landfall_h = 72  # how many hours before landfall to include
 num_intervals = math.floor((2 * 72 - time_frame) / mov_window) + 1
 
-df_rainfall_final = pd.DataFrame(columns=["typhoon", "mun_code", "maximum_24h"])
+df_rainfall_final = pd.DataFrame(columns=["typhoon", "mun_code", "rainfall_max_24h"])
 
 for typhoon in typhoons:
 
@@ -154,12 +155,13 @@ for typhoon in typhoons:
 
         df_mean_rainfall[i] = df_rainfall[available_dates].mean(axis="columns")
 
-    df_mean_rainfall["maximum_24h"] = df_mean_rainfall.max(axis="columns")
+    df_mean_rainfall["rainfall_max_24h"] = df_mean_rainfall.max(axis="columns")
 
-    df_rainfall_single = df_mean_rainfall[["mun_code", "maximum_24h"]]
+    df_rainfall_single = df_mean_rainfall[["mun_code", "rainfall_max_24h"]]
     df_rainfall_single["typhoon"] = typhoon
+    df_rainfall_final = df_rainfall_final.append(df_rainfall_single)
 
-df_rainfall_final = df_rainfall_final.append(df_rainfall_single)
+
 file_path = "IBF_typhoon_model\\data\\rainfall_data\\rainfall_max_24h.csv"  # in mm/h
 
 df_rainfall_final.to_csv(file_path, index=False)
