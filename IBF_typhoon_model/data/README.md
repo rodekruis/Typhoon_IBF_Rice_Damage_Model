@@ -26,6 +26,5 @@ The actual rice data (both on the area planted and the rice losses incurred) is 
 
 ## Restricted data
 Several data files used in this project cannot be made publicly available. There is therefore a folder 'restricted_data' that can be obtained through 510 and should be placed in the 'data' folder. This contains the following data
-- the combined input data used as input for the models
 - data on the rice area over time
 - data on the rice losses incurred in the municipality for the given typhoons

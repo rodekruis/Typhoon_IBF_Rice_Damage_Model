@@ -11,19 +11,19 @@ The dependent variable used in the model is the percentage of standing rice area
 The features used cover a set of exposure and vulnerability indicators (municipality specific) and a set of hazard indicators (typhoon and municipality specific).
 
 **Exporsure and vulnerability indicators**:
-- Area
+- Area (km^2)
 - Latitude
 - Longitude
-- Perimeter
-- Coast length
+- Perimeter (m)
+- Coast length (m)
 - Coast binary
-- Mean elevation
-- Mean ruggedness
-- Ruggedness stdv
-- Mean slope
-- Slope stdv
-- Coast - Perimeter ratio
-- Poverty percentage
+- Mean elevation (m)
+- Mean ruggedness (m)
+- Ruggedness stdv (m)
+- Mean slope (%)
+- Slope stdv (%)
+- Coast - Perimeter ratio 
+- Poverty percentage 
 
 **Hazard indicators**:
 - Maximum 6 hour rainfall (mm/h)
