@@ -26,7 +26,7 @@ path = os.path.join(cdir, file_name)
 df_total = pd.read_excel(path, engine="openpyxl")
 
 # typhoon overview sheet
-file_name = "IBF_typhoon_model\\data\\restricted_data\\data_overview.xlsx"
+file_name = "IBF_typhoon_model\\data\\data_overview.xlsx"
 path = os.path.join(cdir, file_name)
 df_typhoons = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
 
@@ -53,31 +53,89 @@ typhoons = df_total["typhoon"].unique().tolist()
 
 
 """
+Creating damages figures: Creating single figures in loop and saving
+"""
+# region
+#%% Loop through all typhoons
+column_color = 'perc_loss'
+vmin = 0
+vmax = 1
+cmap = 'Reds'
+output_folder = "IBF_typhoon_model\\data\\figures\\track_images_damage"
+output_file_name = "_track_damage"
+
+for typhoon in typhoons:
+
+    print(typhoon)
+    df_plot = df_total[df_total['typhoon']==typhoon]
+    df_plot = pd.merge(df_plot, df_phil, how='left', left_on=['mun_code'], right_on=['ADM3_PCODE'])
+    gpd_plot = gpd.GeoDataFrame(df_plot)
+
+    fig, ax = plt.subplots(figsize=(10, 10), facecolor="white", tight_layout=True)
+    ax.set_aspect("equal")
+
+    minx, miny, maxx, maxy = df_phil.total_bounds
+
+    ax.set_xlim(minx, maxx)
+    ax.set_ylim(miny, maxy)
+
+    df_phil.plot(ax=ax, color="whitesmoke", zorder=1)
+
+    gpd.plot.plot(
+        ax=ax,
+        column=column_color,
+        cmap="Reds",
+        vmin=0,
+        vmax=1,
+        zorder=2
+    )
+
+    df_tracks[df_tracks["SID"] == sid_dict[typhoon]].plot(
+        ax=ax, zorder=4, linestyle=":", linewidth=2, color="black"
+    )
+
+    path = os.path.join(cdir, output_folder, typhoon
+        + "_track_damage.png")
+    
+    file_name = (
+        "IBF_typhoon_model\\data\\figures\\track_images_damage\\"
+        + typhoon
+        + "_track_damage.png"
+    )
+    fig.savefig(file_name)
+
+    plt.close()
+
+
+print("Done")
+# endregion
+
+"""
 Creating damages figures: obtain DF
 """
 # region
-#%%Drop NA's from df
-df_total = df_total[df_total["perc_loss"].notnull()]
+# #%%Drop NA's from df
+# df_total = df_total[df_total["perc_loss"].notnull()]
 
-#%%Add damage per typhoon
-sid_dict = dict(zip(df_typhoons["name_year"], df_typhoons["storm_id"]))
-typhoon_dict = dict(zip(df_typhoons["storm_id"], df_typhoons["name_year"]))
+# #%%Add damage per typhoon
+# sid_dict = dict(zip(df_typhoons["name_year"], df_typhoons["storm_id"]))
+# typhoon_dict = dict(zip(df_typhoons["storm_id"], df_typhoons["name_year"]))
 
-sid_list = df_total["storm_id"].unique().tolist()
-typhoons = df_total["typhoon"].unique().tolist()
+# sid_list = df_total["storm_id"].unique().tolist()
+# typhoons = df_total["typhoon"].unique().tolist()
 
-# Allign column names of shapefile and damage df
-df_phil.rename(columns={"ADM3_PCODE": "mun_code"}, inplace=True)
-df_phil_damage = df_phil.copy()
+# # Allign column names of shapefile and damage df
+# df_phil.rename(columns={"ADM3_PCODE": "mun_code"}, inplace=True)
+# df_phil_damage = df_phil.copy()
 
-# Add damage data
-for sid in sid_list:
+# # Add damage data
+# for sid in sid_list:
 
-    damage_temp = df_total[df_total["storm_id"] == sid]
-    df_phil_damage = df_phil_damage.merge(
-        damage_temp[["mun_code", "perc_loss"]], how="left", on="mun_code",
-    )
-    df_phil_damage.rename(columns={"perc_loss": typhoon_dict[sid]}, inplace=True)
+#     damage_temp = df_total[df_total["storm_id"] == sid]
+#     df_phil_damage = df_phil_damage.merge(
+#         damage_temp[["mun_code", "perc_loss"]], how="left", on="mun_code",
+#     )
+#     df_phil_damage.rename(columns={"perc_loss": typhoon_dict[sid]}, inplace=True)
 # endregion
 
 """

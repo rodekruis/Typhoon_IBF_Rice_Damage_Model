@@ -17,13 +17,13 @@ cdir = os.getcwd()
 
 # Combined input data
 file_name = (
-    "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data_02.xlsx"
+    "IBF_typhoon_model\\data\\restricted_data\\combined_input_data\\input_data_05.xlsx"
 )
 path = os.path.join(cdir, file_name)
 df = pd.read_excel(path, engine="openpyxl")
 
 # Typhoon information
-file_name = "IBF_typhoon_model\\data\\restricted_data\\data_overview.xlsx"
+file_name = "IBF_typhoon_model\\data\\data_overview.xlsx"
 path = os.path.join(cdir, file_name)
 df_typh_overview = pd.read_excel(path, sheet_name="typhoon_overview", engine="openpyxl")
 
@@ -40,11 +40,20 @@ Typhoon information
 """
 #%%
 print(df_typh_overview.columns)
-
 typhoons = df_typh_overview["name_year"]
-min(df_typh_overview["year"])
-max(df_typh_overview["year"])
+df_binary = df[df["damage_above_30"].notnull()]
+year_count = df_binary.groupby(["year"]).count()
+display(year_count)
 
+
+"""
+Typhoon year overview
+"""
+#%%
+
+# df.groupby(['year', 'typhoon'])['damage_above_30'].count()
+
+#%%
 """
 Descriptive statistic
 """

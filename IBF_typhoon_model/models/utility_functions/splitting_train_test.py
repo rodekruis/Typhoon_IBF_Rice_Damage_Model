@@ -9,7 +9,7 @@ def splitting_train_test(df):
 
     for year in years:
 
-        df_train_list.append(df[df["year"] != year])
+        df_train_list.append(df[df["year"] < year])
         df_test_list.append(df[df["year"] == year])
 
     return df_train_list, df_test_list
