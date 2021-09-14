@@ -16,7 +16,8 @@ The features used cover a set of exposure and vulnerability indicators (municipa
 - Longitude
 - Perimeter (m)
 - Coast length (m)
-- Coast binary
+- Coast binary <br>
+    1 if the municipality is by the coast, 0 if it is not
 - Mean elevation (m)
 - Mean ruggedness (m)
 - Ruggedness stdv (m)
@@ -26,8 +27,10 @@ The features used cover a set of exposure and vulnerability indicators (municipa
 - Poverty percentage 
 
 **Hazard indicators**:
-- Maximum 6 hour rainfall (mm/h)
-- Maximum 24 hour rainfall (mm/h)
+- Maximum 6 hour rainfall (mm/h) <br>
+    This reflects the maximum rainfall intensity on a 6 hour time interval. The time period covered is 72 hours before the typhoon makes landfall. Thus, this variables shows the maximum 6 hour rainfall intensity in mm/h in the 72 prior to the typhoon making landfall.
+- Maximum 24 hour rainfall (mm/h) <br>
+    Same definition as the maximum 6 hour rainfall, but now for 24 hours. Thus, this variables shows the maximum 24 hour rainfall intensity in mm/h in the 72 prior to the typhoon making landfall.
 - Minimum track distance (km)
 - Maximum wind speed (m/s, 1 minute average)
 
