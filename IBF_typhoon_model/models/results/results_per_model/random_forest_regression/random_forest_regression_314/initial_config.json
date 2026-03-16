@@ -1,0 +1,53 @@
+{
+    "Hyperparameter Search Space": {
+        "n_estimators": {
+            "type": "Integer",
+            "low": 100,
+            "high": 500
+        },
+        "max_depth": {
+            "type": "Integer",
+            "low": 10,
+            "high": 30
+        },
+        "min_samples_split": {
+            "type": "Integer",
+            "low": 10,
+            "high": 50
+        },
+        "min_samples_leaf": {
+            "type": "Integer",
+            "low": 5,
+            "high": 50
+        }
+    },
+    "Random Seed": 314,
+    "Model Type": "random_forest",
+    "Selected Features": [
+        "mean_elevation_m",
+        "ruggedness_stdev",
+        "area_km2",
+        "poverty_perc",
+        "with_coast",
+        "coast_length",
+        "perimeter",
+        "glat",
+        "glon",
+        "coast_peri_ratio",
+        "pre_max_6h",
+        "during_total_rainfall",
+        "post_max_6h",
+        "dis_track_min",
+        "vmax"
+    ],
+    "Number of iterations for final bayes hyperparameter optimization": 150,
+    "Feature count treshold": 0.9,
+    "Number features that can be selected": [
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "Is two step model?": false
+}

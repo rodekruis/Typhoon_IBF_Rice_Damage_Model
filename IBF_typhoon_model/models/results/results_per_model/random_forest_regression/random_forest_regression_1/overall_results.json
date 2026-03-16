@@ -1,0 +1,140 @@
+{
+    "test_size_per_year": [
+        {
+            "year": 2016,
+            "total_count": 478
+        },
+        {
+            "year": 2017,
+            "total_count": 200
+        },
+        {
+            "year": 2018,
+            "total_count": 324
+        },
+        {
+            "year": 2019,
+            "total_count": 268
+        },
+        {
+            "year": 2020,
+            "total_count": 635
+        }
+    ],
+    "selected_features_count": {
+        "vmax": 5,
+        "post_max_6h": 4,
+        "during_total_rainfall": 5,
+        "dis_track_min": 4,
+        "pre_max_6h": 5
+    },
+    "overall_feature_frequency": {
+        "area_km2": 0.006,
+        "dis_track_min": 0.95,
+        "during_total_rainfall": 1.0,
+        "glon": 0.016,
+        "post_max_6h": 0.93,
+        "pre_max_6h": 0.988,
+        "vmax": 1.0
+    },
+    "final_hyperparameters": {
+        "max_depth": {
+            "selected_values": [
+                30,
+                30,
+                30,
+                26,
+                27
+            ],
+            "range": [
+                26,
+                30
+            ],
+            "mean": 28.6,
+            "std": 1.7435595774162693
+        },
+        "min_samples_leaf": {
+            "selected_values": [
+                5,
+                5,
+                5,
+                5,
+                5
+            ],
+            "range": [
+                5,
+                5
+            ],
+            "mean": 5.0,
+            "std": 0.0
+        },
+        "min_samples_split": {
+            "selected_values": [
+                10,
+                10,
+                10,
+                10,
+                10
+            ],
+            "range": [
+                10,
+                10
+            ],
+            "mean": 10.0,
+            "std": 0.0
+        },
+        "n_estimators": {
+            "selected_values": [
+                500,
+                100,
+                337,
+                500,
+                100
+            ],
+            "range": [
+                100,
+                500
+            ],
+            "mean": 307.4,
+            "std": 179.49662949481808
+        }
+    },
+    "metrics": {
+        "weighted_average": {
+            "mae": {
+                "metric": 0.2800403880286197,
+                "std": 0.04361416470852977
+            },
+            "mse": {
+                "metric": 0.11505576890363092,
+                "std": 0.03514836918287336
+            },
+            "rmse": {
+                "metric": 0.335241231958861,
+                "std": 0.05166319094225679
+            },
+            "mbd": {
+                "metric": 0.027002712131569385,
+                "std": 0.11443319828510178
+            }
+        },
+        "normal_average": {
+            "mae": {
+                "metric": 0.29619894916832606,
+                "std": 0.04733213846750951
+            },
+            "mse": {
+                "metric": 0.12776420840113184,
+                "std": 0.03676207113588433
+            },
+            "rmse": {
+                "metric": 0.3536011629553023,
+                "std": 0.05225347794921915
+            },
+            "mbd": {
+                "metric": 0.008610877622967448,
+                "std": 0.10761935854253116
+            }
+        }
+    }
+}

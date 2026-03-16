@@ -1,12 +1,18 @@
 # Data Folder
 
-This folder contains the data collection and processing. 
+This folder contains the data collection and processing. It contains the following.
 
 ## Data Preparation Notebook
 In this notebook, all collected data is processed to obtain the final dataset that is used as model input. 
 
+## Data Visualization notebook
+Visualizes figures saved in the **figures** folder
+
+## Correlation analysis
+Performs and visualizes a correlation analysis of the features, which is used to select the features used in the model pipeline.
+
 ## Figures
-Contains both scripts for plotting figures and the outputs
+Contains different figures, such as the outputs from the data visualization notebook, but also tracks for each individual typhoons overlayed on a map of the Philippines.
 
 ## GIS data
 Contains the geographical information related to the typhoon tracks.
@@ -20,7 +26,7 @@ Contains the collected and processed rainfall data, as well as scripts for colle
 ## Wind data
 Contains the obtained windspeeds and scripts for processing, using the Climada package
 
-## Rice data
+## Rice data (rice area planted script)
 The actual rice data (both on the area planted and the rice losses incurred) is not made publicly available. This folder contains the script used to process the rice data obtained through PRiSM (the Philippines Rice inforamtion System). With it, the PRiSM raster files that contain info on the rice area planted over time can be processed to obtain the rice area planted in a municipality at a specific date. It results in a dataframe (which is in the restricted data folder) that shows the municipality and all the available dates, with the rice area planted in HA. 
 
 
@@ -28,3 +34,11 @@ The actual rice data (both on the area planted and the rice losses incurred) is 
 Several data files used in this project cannot be made publicly available. There is therefore a folder 'restricted_data' that can be obtained through 510 and should be placed in the 'data' folder. This contains the following data
 - data on the rice area over time
 - data on the rice losses incurred in the municipality for the given typhoons
+
+
+<br/>
+<br/>
+<br/>
+<br/>
+
+**Note**, further details are explained in the README files inside the folders.
