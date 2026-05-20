@@ -1,0 +1,306 @@
+{
+    "test_size_per_year": [
+        {
+            "year": 2020,
+            "total_count": 753,
+            "class_counts": {
+                "0": 658,
+                "1": 95
+            }
+        },
+        {
+            "year": 2019,
+            "total_count": 338,
+            "class_counts": {
+                "0": 236,
+                "1": 102
+            }
+        },
+        {
+            "year": 2018,
+            "total_count": 325,
+            "class_counts": {
+                "0": 185,
+                "1": 140
+            }
+        },
+        {
+            "year": 2017,
+            "total_count": 204,
+            "class_counts": {
+                "0": 102,
+                "1": 102
+            }
+        },
+        {
+            "year": 2016,
+            "total_count": 563,
+            "class_counts": {
+                "0": 300,
+                "1": 263
+            }
+        }
+    ],
+    "selected_features_count": {
+        "vmax": 5,
+        "dis_track_min": 5,
+        "lf_post_max_24h": 2
+    },
+    "overall_feature_frequency": {
+        "area_km2": 0.05,
+        "coast_length": 0.12,
+        "coast_peri_ratio": 0.5,
+        "dis_track_min": 0.954,
+        "glat": 0.124,
+        "glon": 0.082,
+        "lf_during_max_6h_intensity": 0.788,
+        "lf_post_max_24h": 0.874,
+        "lf_pre_max_6h": 0.854,
+        "mean_elevation_m": 0.016,
+        "perimeter": 0.144,
+        "poverty_perc": 0.028,
+        "ruggedness_stdev": 0.032,
+        "vmax": 0.988,
+        "with_coast": 0.092
+    },
+    "final_hyperparameters": {
+        "colsample_bytree": {
+            "selected_values": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.3
+            ],
+            "range": [
+                0.3,
+                1.0
+            ],
+            "mean": 0.86,
+            "std": 0.28
+        },
+        "gamma": {
+            "selected_values": [
+                0.1,
+                0.22339275513235957,
+                0.1,
+                1.681469288562939,
+                5.0
+            ],
+            "range": [
+                0.1,
+                5.0
+            ],
+            "mean": 1.4209724087390598,
+            "std": 1.8868720337870057
+        },
+        "learning_rate": {
+            "selected_values": [
+                0.6067226044790518,
+                0.6775020582027269,
+                1.0,
+                0.7244867482437132,
+                0.01663192873363709
+            ],
+            "range": [
+                0.01663192873363709,
+                1.0
+            ],
+            "mean": 0.6050686679318258,
+            "std": 0.32302896542723686
+        },
+        "max_depth": {
+            "selected_values": [
+                9,
+                10,
+                10,
+                9,
+                4
+            ],
+            "range": [
+                4,
+                10
+            ],
+            "mean": 8.4,
+            "std": 2.244994432064365
+        },
+        "n_estimators": {
+            "selected_values": [
+                445,
+                245,
+                244,
+                232,
+                500
+            ],
+            "range": [
+                232,
+                500
+            ],
+            "mean": 333.2,
+            "std": 115.15103125895139
+        },
+        "reg_lambda": {
+            "selected_values": [
+                1e-05,
+                1e-05,
+                0.008063914420933517,
+                1e-05,
+                10.0
+            ],
+            "range": [
+                1e-05,
+                10.0
+            ],
+            "mean": 2.001618782884187,
+            "std": 3.999191825032701
+        }
+    },
+    "metrics": {
+        "weighted_average": {
+            "accuracy": {
+                "metric": 0.6129180027485113,
+                "std": 0.0354647492420104
+            },
+            "balanced_accuracy": {
+                "metric": 0.6007218295376107,
+                "std": 0.051871209859675756
+            },
+            "precision_0": {
+                "metric": 0.7863110829014262,
+                "std": 0.10481717310161041
+            },
+            "precision_1": {
+                "metric": 0.40096816711125816,
+                "std": 0.19094575107079187
+            },
+            "(Class)weighted_precision": {
+                "metric": 0.703940822857127,
+                "std": 0.08279864112951671
+            },
+            "(Class)unweighted_precision": {
+                "metric": 0.5936396250063422,
+                "std": 0.06884966019178405
+            },
+            "recall_0": {
+                "metric": 0.576180505363503,
+                "std": 0.05533272105111407
+            },
+            "recall_1": {
+                "metric": 0.6252631537117184,
+                "std": 0.1521450653567496
+            },
+            "(Class)weighted_recall": {
+                "metric": 0.6129180027485113,
+                "std": 0.0354647492420104
+            },
+            "(Class)unweighted_recall": {
+                "metric": 0.6007218295376107,
+                "std": 0.051871209859675756
+            },
+            "f1_score_0": {
+                "metric": 0.6608322035152726,
+                "std": 0.0567018276392206
+            },
+            "f1_score_1": {
+                "metric": 0.47237530111427906,
+                "std": 0.18878939308892395
+            },
+            "(Class)weighted_f1_score": {
+                "metric": 0.6359466080384978,
+                "std": 0.03838787315316904
+            },
+            "(Class)unweighted_f1_score": {
+                "metric": 0.5666037523147758,
+                "std": 0.07049134028064725
+            },
+            "cohen_kappa": {
+                "metric": 0.17633322370170526,
+                "std": 0.11648710253428593
+            },
+            "mcc": {
+                "metric": 0.1922823585378653,
+                "std": 0.12204162547391621
+            },
+            "auc": {
+                "metric": 0.6007218295376107,
+                "std": 0.05187120985967572
+            }
+        },
+        "normal_average": {
+            "accuracy": {
+                "metric": 0.6050227597079076,
+                "std": 0.03402861635147351
+            },
+            "balanced_accuracy": {
+                "metric": 0.6001737009707739,
+                "std": 0.045104116557591334
+            },
+            "precision_0": {
+                "metric": 0.7422902923573655,
+                "std": 0.11192143495585621
+            },
+            "precision_1": {
+                "metric": 0.44867027104897017,
+                "std": 0.16409497891592423
+            },
+            "(Class)weighted__precision": {
+                "metric": 0.6694839573616557,
+                "std": 0.08156645496971567
+            },
+            "(Class)unweighted__precision": {
+                "metric": 0.5954802817031679,
+                "std": 0.05820159860295572
+            },
+            "recall_0": {
+                "metric": 0.5698857804308262,
+                "std": 0.05671832113902688
+            },
+            "recall_1": {
+                "metric": 0.6304616215107215,
+                "std": 0.13540160027457462
+            },
+            "(Class)weighted__recall": {
+                "metric": 0.6050227597079076,
+                "std": 0.03402861635147351
+            },
+            "(Class)unweighted__recall": {
+                "metric": 0.6001737009707739,
+                "std": 0.045104116557591334
+            },
+            "f1_score_0": {
+                "metric": 0.639660984736024,
+                "std": 0.056432093726918764
+            },
+            "f1_score_1": {
+                "metric": 0.5102896252405682,
+                "std": 0.15778656294337184
+            },
+            "(Class)weighted__f1_score": {
+                "metric": 0.6193993075172743,
+                "std": 0.03888961759649125
+            },
+            "(Class)unweighted__f1_score": {
+                "metric": 0.574975304988296,
+                "std": 0.05789472039294966
+            },
+            "cohen_kappa": {
+                "metric": 0.1812734685657193,
+                "std": 0.09789179495711832
+            },
+            "mcc": {
+                "metric": 0.19434420171012046,
+                "std": 0.10391634674918146
+            },
+            "auc": {
+                "metric": 0.6001737009707738,
+                "std": 0.045104116557591306
+            }
+        }
+    },
+    "overall_confusion_matrix": {
+        "tp": 474,
+        "tn": 864,
+        "fp": 617,
+        "fn": 228
+    }
+}

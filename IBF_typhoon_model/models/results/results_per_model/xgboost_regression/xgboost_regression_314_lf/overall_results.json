@@ -1,0 +1,177 @@
+{
+    "test_size_per_year": [
+        {
+            "year": 2017,
+            "total_count": 200
+        },
+        {
+            "year": 2016,
+            "total_count": 478
+        },
+        {
+            "year": 2019,
+            "total_count": 268
+        },
+        {
+            "year": 2018,
+            "total_count": 324
+        },
+        {
+            "year": 2020,
+            "total_count": 635
+        }
+    ],
+    "selected_features_count": {
+        "vmax": 5,
+        "dis_track_min": 5,
+        "lf_pre_max_6h": 5,
+        "lf_post_max_24h": 5
+    },
+    "overall_feature_frequency": {
+        "area_km2": 0.03,
+        "coast_length": 0.018,
+        "coast_peri_ratio": 0.02,
+        "dis_track_min": 0.984,
+        "glat": 0.02,
+        "glon": 0.19,
+        "lf_during_max_6h_intensity": 0.746,
+        "lf_post_max_24h": 0.972,
+        "lf_pre_max_6h": 0.97,
+        "mean_elevation_m": 0.228,
+        "perimeter": 0.012,
+        "poverty_perc": 0.016,
+        "ruggedness_stdev": 0.138,
+        "vmax": 0.982,
+        "with_coast": 0.026
+    },
+    "final_hyperparameters": {
+        "colsample_bytree": {
+            "selected_values": [
+                0.8868585331505667,
+                0.8771292175383374,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "range": [
+                0.8771292175383374,
+                1.0
+            ],
+            "mean": 0.9527975501377808,
+            "std": 0.057892770427068085
+        },
+        "gamma": {
+            "selected_values": [
+                0.1,
+                0.1,
+                0.1,
+                0.1,
+                0.1
+            ],
+            "range": [
+                0.1,
+                0.1
+            ],
+            "mean": 0.1,
+            "std": 0.0
+        },
+        "learning_rate": {
+            "selected_values": [
+                0.15978136479404065,
+                0.1069817399201191,
+                0.2954933266680855,
+                0.2668364862988065,
+                0.10738906436766037
+            ],
+            "range": [
+                0.1069817399201191,
+                0.2954933266680855
+            ],
+            "mean": 0.18729639640974244,
+            "std": 0.07953100570573966
+        },
+        "max_depth": {
+            "selected_values": [
+                10,
+                10,
+                9,
+                10,
+                10
+            ],
+            "range": [
+                9,
+                10
+            ],
+            "mean": 9.8,
+            "std": 0.39999999999999997
+        },
+        "n_estimators": {
+            "selected_values": [
+                252,
+                416,
+                259,
+                500,
+                276
+            ],
+            "range": [
+                252,
+                500
+            ],
+            "mean": 340.6,
+            "std": 99.77494675518498
+        },
+        "reg_lambda": {
+            "selected_values": [
+                10.0,
+                10.0,
+                10.0,
+                10.0,
+                10.0
+            ],
+            "range": [
+                10.0,
+                10.0
+            ],
+            "mean": 10.0,
+            "std": 0.0
+        }
+    },
+    "metrics": {
+        "weighted_average": {
+            "mae": {
+                "metric": 0.28187001946870033,
+                "std": 0.035836168626283055
+            },
+            "mse": {
+                "metric": 0.12055910324948625,
+                "std": 0.03135835225775725
+            },
+            "rmse": {
+                "metric": 0.3442768136257316,
+                "std": 0.04508413079121632
+            },
+            "mbd": {
+                "metric": 0.032320095501153924,
+                "std": 0.117059918020679
+            }
+        },
+        "normal_average": {
+            "mae": {
+                "metric": 0.2937726097635592,
+                "std": 0.039303059183182464
+            },
+            "mse": {
+                "metric": 0.1315681426609349,
+                "std": 0.031956624119851826
+            },
+            "rmse": {
+                "metric": 0.35990262643731263,
+                "std": 0.04514689518072211
+            },
+            "mbd": {
+                "metric": 0.009551810496936047,
+                "std": 0.11141121850157792
+            }
+        }
+    }
+}

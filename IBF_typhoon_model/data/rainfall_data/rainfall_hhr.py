@@ -120,7 +120,7 @@ def download_gpm(start_date, end_date, download_path, type_imerg):
     """
     # Username and password for logging in
     # Can create own account on NASA site
-    ppm_username = "mvanbrussel@rodekruis.nl"
+    ppm_username = "ilyagorb99@gmail.com"
     base_url = ""
 
     # Connection to the site, if pasting in chrome: https://arthurhouhttps.pps.eosdis.nasa.gov/
@@ -344,11 +344,12 @@ def process_tyhoon_data(typhoon_to_process, typhoon_name):
 not_found_files = []
 
 # Setting path and workspace_admin directory
-os.chdir("C:\\Users\\Marieke\\GitHub\\Typhoon_IBF_Rice_Damage_Model")
+os.chdir("/home/jovyan/work/Typhoon_IBF_Rice_Damage_Model/")
 cdir = os.getcwd()
 
 # Typhoons for which to run
-typhoons = ["kompasu2010"]
+#typhoons = ["kompasu2010"]
+
 typhoons = [
     "ketsana2009",
     "kompasu2010",
@@ -407,9 +408,11 @@ typhoons = [
     "parma2009",
 ]
 
-
 # Setting the number of days prior to the landfall data for which to collect data
 days_to_landfall = 3
+
+# New variable: Number of days after the end date for which to collect data
+days_after_end = 10
 
 # Setting path to save the GPM data
 gpm_file_name = "IBF_typhoon_model/data/rainfall_data/output_hhr/gpm"
@@ -455,25 +458,20 @@ for i in range(len(typhoon_metadata)):
 typhoon_metadata = typhoon_metadata.set_index("typhoon").to_dict()
 typhoons_dict = dict()
 i = 0
+    
 for typhoon in typhoons:
     case = typhoon
     typhoons_dict[case] = {
         "typhoon": typhoon,
         "dates": [
-            dt.datetime.strptime(
-                typhoon_metadata["startdate"][typhoon], "%d-%m-%Y"
-            ).date(),
-            dt.datetime.strptime(
-                typhoon_metadata["enddate"][typhoon], "%d-%m-%Y"
-            ).date(),
-            dt.datetime.strptime(
-                typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y"
-            ).date()
-            - dt.timedelta(days=days_to_landfall),
+            dt.datetime.strptime(typhoon_metadata["startdate"][typhoon], "%d-%m-%Y").date(),
+            dt.datetime.strptime(typhoon_metadata["landfalldate"][typhoon], "%d-%m-%Y").date() - dt.timedelta(days=days_to_landfall),
+            dt.datetime.strptime(typhoon_metadata["enddate"][typhoon], "%d-%m-%Y").date() + dt.timedelta(days=days_after_end)
         ],
         "imerg_type": typhoon_metadata["imerg_type"][typhoon],
     }
     i = i + 1
+
 
 # # TODO Temporarily changed this + run once & remove 'not_found_files' relations
 # # Creating a dictionary for the typhoons, with corresponding information (enddate, startdate, imerg_type)

@@ -1,0 +1,67 @@
+{
+    "Hyperparameter Search Space": {
+        "n_estimators": {
+            "type": "Integer",
+            "low": 100,
+            "high": 500
+        },
+        "max_depth": {
+            "type": "Integer",
+            "low": 3,
+            "high": 10
+        },
+        "learning_rate": {
+            "type": "Real",
+            "low": 0.01,
+            "high": 1,
+            "prior": "log-uniform"
+        },
+        "reg_lambda": {
+            "type": "Real",
+            "low": 1e-05,
+            "high": 10,
+            "prior": "log-uniform"
+        },
+        "colsample_bytree": {
+            "type": "Real",
+            "low": 0.3,
+            "high": 1.0,
+            "prior": "uniform"
+        },
+        "gamma": {
+            "type": "Real",
+            "low": 0.1,
+            "high": 5,
+            "prior": "uniform"
+        }
+    },
+    "Random Seed": 314,
+    "Model Type": "xgboost",
+    "Selected Features": [
+        "mean_elevation_m",
+        "ruggedness_stdev",
+        "area_km2",
+        "poverty_perc",
+        "with_coast",
+        "coast_length",
+        "perimeter",
+        "glat",
+        "glon",
+        "coast_peri_ratio",
+        "pre_max_6h",
+        "during_total_rainfall",
+        "post_max_6h",
+        "dis_track_min",
+        "vmax"
+    ],
+    "Number of iterations for final bayes hyperparameter optimization": 200,
+    "Feature count treshold": 0.9,
+    "Number features that can be selected": [
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "Is two step model?": false
+}

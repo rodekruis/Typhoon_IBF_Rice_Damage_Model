@@ -1,6 +1,6 @@
 # Typhoon IBF Rice Damage Model
 
-This GitHub Repository covers the 'Rice Damage Model' of the Impact Based Forecasting project of 510. It has been executed in collaboration with the German and Philippines Red Cross, the Food and Agriculture Organization, the Philippines Department of Agriculture and Philippine Rice Research Institure. The main aim was to develop a model that can be used to predict damages to rice fields, on municipality level, before a typhoon makes landfall. To this extent, three sets of models have been implementend; a binary classification, a multiclass classifcication and a regression.  
+This GitHub Repository covers the 'Rice Damage Model' of the Impact Based Forecasting project of 510. It has been executed in collaboration with the German and Philippines Red Cross, the Food and Agriculture Organization, the Philippines Department of Agriculture and Philippine Rice Research Institure. The main aim was to develop a model that can be used to predict damages to rice fields, on municipality level, before a tropical cyclone (TC) makes landfall. 
 
 ## Dependent Variable
 
@@ -8,7 +8,7 @@ The dependent variable used in the model is the percentage of standing rice area
 
 ## Features
 
-The features used cover a set of exposure and vulnerability indicators (municipality specific) and a set of hazard indicators (typhoon and municipality specific).
+The features used cover a set of exposure and vulnerability indicators (municipality specific) and a set of hazard indicators (TC and municipality specific).
 
 **Exporsure and vulnerability indicators**:
 - Area (km^2)
@@ -27,24 +27,44 @@ The features used cover a set of exposure and vulnerability indicators (municipa
 - Poverty percentage 
 
 **Hazard indicators**:
-- Maximum 6 hour rainfall (mm/h) <br>
-    This reflects the maximum rainfall intensity on a 6 hour time interval. The time period covered is 72 hours before the typhoon makes landfall. Thus, this variables shows the maximum 6 hour rainfall intensity in mm/h in the 72 prior to the typhoon making landfall.
-- Maximum 24 hour rainfall (mm/h) <br>
-    Same definition as the maximum 6 hour rainfall, but now for 24 hours. Thus, this variables shows the maximum 24 hour rainfall intensity in mm/h in the 72 prior to the typhoon making landfall.
-- Minimum track distance (km)
-- Maximum wind speed (m/s, 1 minute average)
+- Rainfall variables  
+  Two sets of rainfall variables were created to test two approaches:  
+  (1) a **spatial extent approach**, which determines entry and exit times based on the TC’s modelled spatial extent (ROCI from IBTrACS), and  
+  (2) a **landfall approach**, which assumes municipalities experience TC effects from **3 hours before** to **24 hours after landfall**.  
+  Rainfall data was obtained from NASA GPM IMERG (10 km resolution, 30-minute intervals).  
+  The pre-TC period covers **72 hours before entry**, and the post-TC period **48 hours after exit**.  
+  Testing showed that the simpler landfall approach resulted in **no statistically significant change in model performance**. A variety of variables was selected, in order to select the best one for each cluster during feature selection.
+
+  - Pre-TC rainfall variables (72 hours before TC entry)
+    - Maximum 6-hour rainfall (mm/h) <br>
+      Maximum rainfall intensity calculated over a rolling 6-hour window during the 72 hours before the TC entered the municipality.
+    - Maximum 24-hour rainfall (mm/h) <br>
+      Maximum rainfall intensity calculated over a rolling 24-hour window during the 72 hours before the TC entered the municipality.
+
+  - During-TC rainfall variables (between entry and exit)
+    - Total rainfall (mm) <br>
+      Total accumulated rainfall during the TC’s presence in the municipality.
+    - Mean rainfall (mm/h) <br>
+      Average rainfall intensity during the TC’s presence.
+    - Maximum rainfall (mm/h) <br>
+      Highest recorded rainfall intensity during the TC period.
+    - Maximum 1-hour rainfall (mm/h) <br>
+      Maximum rainfall intensity over a rolling 1-hour window during the TC (landfall approach only).
+    - Maximum 3-hour rainfall (mm/h) <br>
+      Maximum rainfall intensity over a rolling 3-hour window during the TC (landfall approach only).
+    - Maximum 6-hour rainfall (mm/h) <br>
+      Maximum rainfall intensity over a rolling 6-hour window during the TC (landfall approach only).
+
+  - Post-TC rainfall variables (48 hours after TC exit)
+    - Maximum 6-hour rainfall (mm/h) <br>
+      Maximum rainfall intensity calculated over a rolling 6-hour window during the 48 hours after the TC left the municipality.
+    - Maximum 24-hour rainfall (mm/h) <br>
+      Maximum rainfall intensity calculated over a rolling 24-hour window during the 48 hours after the TC left the municipality.
 
 
 ## Binary Classification
 
 The binary classification models predicts whether the damages is above or below 30%
-
-## Multiclass Classification
-
-The multiclass classification has three classes:
-- 0 - 30%
-- 30% - 80%
-- \> 80%
 
 ## Regression
 
@@ -52,13 +72,11 @@ The regression model predicts on a continuous scale.
 
 ## GitHub Repo Structure
 
-This repo contains the data and code used in the projects including documentation to explain the steps taken. The two main files are:
+The repository contains two main folders: **data** and **models**. Further details are provided in the README files within each folder.
 
-- [The data preparation notebook](https://github.com/rodekruis/Typhoon_IBF_Rice_Damage_Model/blob/main/IBF_typhoon_model/data/data_preparation_notebook.ipynb) <br>
-This notebook contains a step-by-step process of obtaining and processing all the data, resulting in the final input data set used in the model.
+  - **data**  
+    Contains all scripts and resources related to **data collection and processing** used to construct the final modelling dataset.  
+    Subfolders include data preparation scripts, rainfall and wind data processing, GIS data, administrative boundary shapefiles, figure scripts, rice data processing scripts, and a `restricted_data` folder containing datasets that cannot be publicly shared.
 
-
-- [The model results notebook](https://github.com/rodekruis/Typhoon_IBF_Rice_Damage_Model/blob/main/IBF_typhoon_model/models/model_results.ipynb) <br>
-This notebook contains a step-by-step process of training and testing a set of models, to find the optimal ones, on the input data obtained.
-
-The folder contain all supporting files, brief documentation and code comments.
+  - **models**  
+    Contains the **model pipelines and results** for the machine learning models used in this study. This includes implementations of **XGBoost** and **Random Forest** models for both **regression** and **binary classification**.
